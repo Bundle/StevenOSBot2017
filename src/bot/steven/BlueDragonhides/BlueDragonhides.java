@@ -62,16 +62,19 @@ public class BlueDragonhides extends Script{
 		case DepositHides:
 			//right click on hide and hit deposit all
 			try{
-				//deposit the vial
-			inventory.getItems()[1].interact("Deposit");
-			//deposit all the hides
-			inventory.getItems()[2].interact("Deposit-All");
+			
+			bank.depositAll();
+			
 			}catch(Exception e){log("error, nothing in slot 1 btw");};
 			currentState = HIDESTATES.WithdrawHides;
 			break;
 		case WithdrawHides:
-			//right click on hides in bank and withdraw all
+			//money
+			bank.withdrawAll("Coins");
+			//pots
 			bank.withdraw("Energy potion(4)", 1);
+			//right click on hides in bank and withdraw all
+			rsleep(1000);//sometimes it doesnt get the fuckin hides
 			bank.withdrawAll("Blue dragonhide");
 			rsleep(500);
 			currentState = HIDESTATES.CloseBank;
