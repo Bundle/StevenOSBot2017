@@ -49,7 +49,7 @@ public class KebabCarry extends Script{
 		int loops = 0;
 		while (widgets.get(arg1,arg2) == null || !widgets.get(arg1,arg2).isVisible()) {
 			loops++;
-			if (loops > 20)
+			if (loops > 80)
 				return;
 			rsleep(100);
 		}
@@ -59,7 +59,7 @@ public class KebabCarry extends Script{
 		int loops = 0;
 		while (widgets.get(arg1,arg2,arg3) == null || !widgets.get(arg1,arg2,arg3).isVisible()){
 			loops++;
-			if (loops > 20)
+			if (loops > 80)
 				return;
 			rsleep(100);
 		}
@@ -84,12 +84,37 @@ public class KebabCarry extends Script{
 		
 		
 	}
+	String mainName = "3DSpaceCadet";
+	enum ChatInterruption {
+		freedom,
+		tradingMain
+		
+	};
+	ChatInterruption chatInterruptState = ChatInterruption.freedom;
+	
+	void checkKebabChatInterruptions()
+	{
+		
+		
+		
+	}
+	void returnToNoninterrupt()
+	{
+		chatInterruptState = ChatInterruption.freedom;
+		boy = KebabBoy.FixingInventory;
+	}
+	
+	
 	Entity Karim = null;
 	KebabBoy boy = KebabBoy.FixingInventory;
 	@Override
 	public int onLoop() throws InterruptedException {
 		
-		log("kebabstate is " + boy);
+		checkKebabChatInterruptions();
+		
+		log("KebabBoy is " + boy);
+		switch (chatInterruptState) {
+		case freedom:
 		switch (boy) {		
 		case FixingInventory:
 			bank.open();
@@ -170,6 +195,10 @@ public class KebabCarry extends Script{
 			}
 			
 			
+			break;
+		}
+		break;
+		case tradingMain:
 			break;
 		}
 		
