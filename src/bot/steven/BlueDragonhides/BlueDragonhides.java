@@ -8,7 +8,7 @@ import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 
 
-@ScriptManifest(author = "Steven Ventura", info = "Tan Blue Dragonhides", logo = "", name = "BlueDragonhides", version = 0)
+@ScriptManifest(author = "Steven Ventura", info = "Tan Green Dragonhides", logo = "", name = "GreenDragonhides", version = 0)
 public class BlueDragonhides extends Script{
 
 	final boolean LEFTCLICK = false, RIGHTCLICK = true;
@@ -75,7 +75,7 @@ public class BlueDragonhides extends Script{
 			bank.withdraw("Energy potion(4)", 1);
 			//right click on hides in bank and withdraw all
 			rsleep(1000);//sometimes it doesnt get the fuckin hides
-			bank.withdrawAll("Blue dragonhide");
+			bank.withdrawAll("Green dragonhide");
 			rsleep(500);
 			currentState = HIDESTATES.CloseBank;
 			break;
@@ -133,7 +133,10 @@ public class BlueDragonhides extends Script{
 			{
 				rsleep(100);
 			}
-			widgets.get(324,153).interact("Tan All");
+			int RED = 154, BLUE = 153, GREEN = 152, BLACK = 107;
+			widgets.get(324,GREEN).interact("Tan All");
+			
+			
 			/*rightclick(191,234);
 			click(193,304);*/
 			currentState = HIDESTATES.ReturnToBank;
