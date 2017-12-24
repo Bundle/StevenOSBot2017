@@ -1,4 +1,7 @@
 package bot.steven.KebabCarry;
+import bot.steven.ChatCommands.ChatCommands;
+import bot.steven.ChatCommands.ChatCommander;
+
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.model.Item;
@@ -6,8 +9,8 @@ import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 
 @ScriptManifest(author = "Steven Ventura", info = "drop kebabs btw", logo = "", name = "KebabCarry", version = 0)
-public class KebabCarry extends Script{
-
+public class KebabCarry extends Script implements ChatCommands{
+	ChatCommander commando = new ChatCommander("3DSpaceCadet");
 	final boolean LEFTCLICK = false, RIGHTCLICK = true;
 	
 	private void rsleep(long millis)
@@ -27,6 +30,7 @@ public class KebabCarry extends Script{
 		mouse.click(RIGHTCLICK);
 	}
 	boolean first = true;
+	
 	
 	enum KebabBoy {
 		FixingInventory,
@@ -84,37 +88,37 @@ public class KebabCarry extends Script{
 		
 		
 	}
-	String mainName = "3DSpaceCadet";
-	enum ChatInterruption {
-		freedom,
-		tradingMain
-		
-	};
-	ChatInterruption chatInterruptState = ChatInterruption.freedom;
 	
-	void checkKebabChatInterruptions()
-	{
-		
-		
-		
-	}
-	void returnToNoninterrupt()
-	{
-		chatInterruptState = ChatInterruption.freedom;
+	
+	
+	
+	public void returnToNormalBehavior() {
 		boy = KebabBoy.FixingInventory;
 	}
 	
-	
 	Entity Karim = null;
 	KebabBoy boy = KebabBoy.FixingInventory;
+	
 	@Override
 	public int onLoop() throws InterruptedException {
 		
-		checkKebabChatInterruptions();
+	
+		boolean interruptNormalBehavior = commando.isInterrupting();
+		
 		
 		log("KebabBoy is " + boy);
-		switch (chatInterruptState) {
-		case freedom:
+		
+		if (commando.returnToNormalBehaviorFlag == true)
+		{
+			returnToNormalBehavior();
+			commando.returnToNormalBehaviorFlag = false;
+		}
+		
+		if (interruptNormalBehavior == true)
+		{
+			//commando.doInterruptStuff()
+		}
+		else
 		switch (boy) {		
 		case FixingInventory:
 			bank.open();
@@ -197,10 +201,7 @@ public class KebabCarry extends Script{
 			
 			break;
 		}
-		break;
-		case tradingMain:
-			break;
-		}
+		
 		
 		
 		return (int)(50*Math.random() + 50);
