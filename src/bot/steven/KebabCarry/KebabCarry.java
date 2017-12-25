@@ -1,16 +1,18 @@
 package bot.steven.KebabCarry;
-import bot.steven.ChatCommands.ChatCommands;
-import bot.steven.ChatCommands.ChatCommander;
-
+import org.osbot.rs07.api.Chatbox;
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.model.Item;
+import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 
+import bot.steven.ChatCommands.ChatCommander;
+import bot.steven.ChatCommands.ChatCommands;
+
 @ScriptManifest(author = "Steven Ventura", info = "drop kebabs btw", logo = "", name = "KebabCarry", version = 0)
 public class KebabCarry extends Script implements ChatCommands{
-	ChatCommander commando = new ChatCommander("3DSpaceCadet");
+	ChatCommander commando = new ChatCommander(this);
 	final boolean LEFTCLICK = false, RIGHTCLICK = true;
 	
 	private void rsleep(long millis)
@@ -98,11 +100,23 @@ public class KebabCarry extends Script implements ChatCommands{
 	
 	Entity Karim = null;
 	KebabBoy boy = KebabBoy.FixingInventory;
-	
+	@Override
+	public void onMessage(Message message)
+	{
+		final int CLANCHAT = 9, WHISPER = 3;
+		String text = message.getMessage();
+		
+			commando.checkForInterruptText(message);
+		
+		
+		
+		
+	}
 	@Override
 	public int onLoop() throws InterruptedException {
 		
-	
+		
+		
 		boolean interruptNormalBehavior = commando.isInterrupting();
 		
 		
@@ -116,7 +130,8 @@ public class KebabCarry extends Script implements ChatCommands{
 		
 		if (interruptNormalBehavior == true)
 		{
-			//commando.doInterruptStuff()
+			
+			commando.doInterruptStuff();
 		}
 		else
 		switch (boy) {		
