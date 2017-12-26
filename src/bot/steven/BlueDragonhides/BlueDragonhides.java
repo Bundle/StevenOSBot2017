@@ -1,6 +1,7 @@
 package bot.steven.BlueDragonhides;
 
-import java.util.ArrayList;
+import java.awt.Color;
+import java.awt.Graphics2D;
 
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
@@ -40,7 +41,31 @@ public class BlueDragonhides extends Script{
 	}
 	int totalJugsFilled = 0;
 	HIDESTATES currentState = HIDESTATES.OpenBank;
-	
+	//bi = new BufferedImage(getSize().width,getSize().height, 5);
+	private int getExtraPotAmount()
+	{
+		return potAmount - (int)hideAmountLeft/26;
+	}
+	public void onPaint(Graphics2D g)
+	{
+		g.setPaint(Color.CYAN);
+		g.drawString("extra pots:" + getExtraPotAmount(),10,80);
+		g.drawString("Left=" + hideAmountLeft + ",Done=" + hideAmountDone, 10,100);
+		g.drawString("TimeLeft=" + reee((int)(hideAmountLeft/26*36)),10,120);
+	}
+	private String reee(int seconds)
+	{
+		
+		int hours=0,minutes=0;
+		hours = (int)Math.floor(seconds/3600);
+		seconds -= hours*3600;
+		minutes = (int)Math.floor(seconds/60);
+		seconds -= minutes*60;
+		return hours + ":" + minutes + ":" + seconds;
+	}
+	int hideAmountLeft = 0;
+	int hideAmountDone = 0;
+	int potAmount = 0;
 	@Override
 	public int onLoop() throws InterruptedException {
 		log("currentState is " + currentState);
@@ -81,7 +106,10 @@ public class BlueDragonhides extends Script{
 			bank.withdraw("Energy potion(4)", 1);
 			//right click on hides in bank and withdraw all
 			rsleep(1000);//sometimes it doesnt get the fuckin hides
+			hideAmountLeft = (int)bank.getAmount("Green dragonhide");
+			potAmount = (int)bank.getAmount("Energy potion(4)");
 			bank.withdrawAll("Green dragonhide");
+			
 			rsleep(500);
 			currentState = HIDESTATES.CloseBank;
 			break;
@@ -141,6 +169,7 @@ public class BlueDragonhides extends Script{
 			if (widgets.get(324,GREEN) != null && widgets.get(324,GREEN).isVisible())
 				{
 				widgets.get(324,GREEN).interact("Tan All");
+				hideAmountDone += 26;
 				currentState = HIDESTATES.ReturnToBank;
 				}
 			else
