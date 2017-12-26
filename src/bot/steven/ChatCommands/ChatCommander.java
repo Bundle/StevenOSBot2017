@@ -57,6 +57,11 @@ public class ChatCommander {
 			script.log("noting");
 			commandState = CommandStates.NotingItems;
 		}
+		if (text.startsWith("Roll"))
+		{
+			//just do it rq lol
+			script.keyboard.typeString("//" + script.getName() + " reporting for duty captain Cx");
+		}
 		
 		
 		
@@ -162,7 +167,7 @@ public class ChatCommander {
 			rsleep(100);
 			//interact, withdraw all
 			script.bank.withdrawAll(stateData);
-			commandState = CommandStates.Done;
+			commandState = CommandStates.SharedWaitingState;
 			break;
 		
 		}

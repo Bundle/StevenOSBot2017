@@ -47,6 +47,12 @@ public class BlueDragonhides extends Script{
 		
 		switch (currentState) {
 		case OpenBank:
+			walking.walk(new Position(3278,3179,0));
+			walking.walk(new Position(3278,3179,0));
+			while(myPlayer().isAnimating() || myPlayer().isMoving())
+			{
+				rsleep(50);
+			}
 			int please = 0;
 			while(!bank.isOpen()) {
 				please++;
@@ -122,24 +128,26 @@ public class BlueDragonhides extends Script{
 			while(myPlayer().isAnimating() || myPlayer().isMoving())
 			{
 				//slowed it down for reliability
-				rsleep(1000);
+				rsleep(50);
 			}
 			
 			
 			currentState = HIDESTATES.TanAllHides;
 			break;
 		case TanAllHides:
-			while (widgets.get(324,153) == null || !widgets.get(324,153).isVisible())
-			{
-				rsleep(100);
-			}
+			WaitForWidget(324,153);
+			
 			int RED = 154, BLUE = 153, GREEN = 152, BLACK = 107;
-			widgets.get(324,GREEN).interact("Tan All");
-			
-			
-			/*rightclick(191,234);
-			click(193,304);*/
-			currentState = HIDESTATES.ReturnToBank;
+			if (widgets.get(324,GREEN) != null && widgets.get(324,GREEN).isVisible())
+				{
+				widgets.get(324,GREEN).interact("Tan All");
+				currentState = HIDESTATES.ReturnToBank;
+				}
+			else
+			{
+				currentState = HIDESTATES.TradeWithTanner;
+			}
+				
 			break;
 		case ReturnToBank:
 			walking.walk(new Position(3278,3179,0));
@@ -157,6 +165,26 @@ public class BlueDragonhides extends Script{
 		
 		
 		return (int)(50*Math.random() + 50);
+	}
+	private void WaitForWidget (int arg1, int arg2)
+	{
+		int loops = 0;
+		while (widgets.get(arg1,arg2) == null || !widgets.get(arg1,arg2).isVisible()) {
+			loops++;
+			if (loops > 80)
+				return;
+			rsleep(100);
+		}
+	}
+	private void WaitForWidget (int arg1, int arg2, int arg3)
+	{
+		int loops = 0;
+		while (widgets.get(arg1,arg2,arg3) == null || !widgets.get(arg1,arg2,arg3).isVisible()){
+			loops++;
+			if (loops > 80)
+				return;
+			rsleep(100);
+		}
 	}
 
 	
