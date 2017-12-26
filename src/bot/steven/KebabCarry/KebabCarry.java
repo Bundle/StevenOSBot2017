@@ -1,4 +1,7 @@
 package bot.steven.KebabCarry;
+import java.awt.Color;
+import java.awt.Graphics2D;
+
 import org.osbot.rs07.api.Chatbox;
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
@@ -112,6 +115,14 @@ public class KebabCarry extends Script implements ChatCommands{
 		
 		
 	}
+	int kebabsBought = 0;
+	int totalKebabs = 0;
+	public void onPaint(Graphics2D g)
+	{
+		g.setPaint(Color.GREEN);
+		g.drawString("KebabsBought="+kebabsBought,10,80);
+		g.drawString("TotalKebabs="+totalKebabs,10,100);
+	}
 	@Override
 	public int onLoop() throws InterruptedException {
 		
@@ -152,6 +163,7 @@ public class KebabCarry extends Script implements ChatCommands{
 		case DepositingKebabs:
 			rsleep(500);
 			//log(inventory.getItems()[1].getName());
+			totalKebabs = (int)bank.getAmount("Kebab");
 			if (inventory.getItems()[1] != null && inventory.getItems()[1].nameContains("Kebab"))
 				inventory.getItems()[1].interact("Deposit-All");
 			
@@ -200,6 +212,7 @@ public class KebabCarry extends Script implements ChatCommands{
 			rsleep(10);
 			WaitForWidget(217,2);
 			click(202,449);
+			kebabsBought++;
 			
 			
 			
