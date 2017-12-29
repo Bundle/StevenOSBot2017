@@ -53,25 +53,27 @@ public class KebabCarry extends Script implements ChatCommands{
 			rsleep(500);
 		}
 	}
-	private void WaitForWidget (int arg1, int arg2)
+	private boolean WaitForWidget (int arg1, int arg2)
 	{
 		int loops = 0;
 		while (widgets.get(arg1,arg2) == null || !widgets.get(arg1,arg2).isVisible()) {
 			loops++;
-			if (loops > 80)
-				return;
+			if (loops > 40)
+				return false;
 			rsleep(100);
 		}
+		return true;
 	}
-	private void WaitForWidget (int arg1, int arg2, int arg3)
+	private boolean WaitForWidget (int arg1, int arg2, int arg3)
 	{
 		int loops = 0;
 		while (widgets.get(arg1,arg2,arg3) == null || !widgets.get(arg1,arg2,arg3).isVisible()){
 			loops++;
-			if (loops > 80)
-				return;
+			if (loops > 40)
+				return false;
 			rsleep(100);
 		}
+		return true;
 	}
 	
 	boolean inventoryIsFine() 
@@ -109,17 +111,23 @@ public class KebabCarry extends Script implements ChatCommands{
 		final int CLANCHAT = 9, WHISPER = 3;
 		String text = message.getMessage();
 		
-			commando.checkForInterruptText(message);
+			commando.checkForInterruptText(message,this);
 		
 		
 		
 		
 	}
+	public void reportStatus()
+	{
+		keyboard.typeString("//kebabs= " + totalKebabs + ",coins= " + currentCoins);
+	}
 	int kebabsBought = 0;
 	int totalKebabs = 0;
+	int currentCoins = 0;
 	public void onPaint(Graphics2D g)
 	{
 		g.setPaint(Color.GREEN);
+		g.drawString("name="+myPlayer().getName(),10,60);
 		g.drawString("KebabsBought="+kebabsBought,10,80);
 		g.drawString("TotalKebabs="+totalKebabs,10,100);
 	}
@@ -150,6 +158,7 @@ public class KebabCarry extends Script implements ChatCommands{
 			bank.open();
 			waitForMovements();
 			bank.depositAll();
+			rsleep(50);
 			bank.withdrawAll("Coins");
 			boy = KebabBoy.ClosingBank;
 			break;
@@ -164,6 +173,7 @@ public class KebabCarry extends Script implements ChatCommands{
 			rsleep(500);
 			//log(inventory.getItems()[1].getName());
 			totalKebabs = (int)bank.getAmount("Kebab");
+			currentCoins = (int)inventory.getAmount("Coins");
 			if (inventory.getItems()[1] != null && inventory.getItems()[1].nameContains("Kebab"))
 				inventory.getItems()[1].interact("Deposit-All");
 			
@@ -195,6 +205,7 @@ public class KebabCarry extends Script implements ChatCommands{
 			}
 			else
 				Karim.interact("Talk-To");
+			rsleep(50);//for reliability
 			
 			boolean itsFine = inventoryIsFine();
 			
@@ -205,14 +216,19 @@ public class KebabCarry extends Script implements ChatCommands{
 			}
 			
 			
-			WaitForWidget(231,2);
+			if (WaitForWidget(231,2)) {
 			click(300,454);
-			WaitForWidget(219,0,2);
+			if (WaitForWidget(219,0,2)) {
 			click(257,432);
 			rsleep(10);
-			WaitForWidget(217,2);
+			if (WaitForWidget(217,2)) {
 			click(202,449);
 			kebabsBought++;
+			}
+			}
+			}
+			rsleep(250);
+			
 			
 			
 			

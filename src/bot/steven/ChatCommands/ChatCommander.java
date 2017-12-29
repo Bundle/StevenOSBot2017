@@ -20,10 +20,10 @@ public class ChatCommander {
 	String stateData2 = "";
 	boolean isInterrupting = false;
 	
-	public void checkForInterruptText(Message message) {
+	public void checkForInterruptText(Message message,ChatCommands commandboy) {
 		String text = message.getMessage();
-		script.log("raw text is:" + text);
-		script.log("sender is:" + message.getUsername());
+		
+		
 		if (commandState == CommandStates.CopyPlayer)
 		{
 			if (message.getUsername().equals(nameToCopy))
@@ -107,10 +107,13 @@ public class ChatCommander {
 			Entity followguy = script.players.closest(stateData);
 			if (followguy == null)
 			{
-				commandState = CommandStates.Done;
+				//keep trying
+				commandState = CommandStates.FollowUser;
+				
 			}
 			else
-			{followguy.interact("Follow");
+			{
+			followguy.interact("Follow");
 			commandState = CommandStates.SharedWaitingState;
 			}
 			break;
@@ -119,7 +122,8 @@ public class ChatCommander {
 			
 			if (copyguy == null)
 			{
-				commandState = CommandStates.Done;
+				//keep trying to find him i guess
+				commandState = CommandStates.CopyPlayer;
 			}
 			else
 			{
@@ -138,19 +142,22 @@ public class ChatCommander {
 				tradeboy.interact("Trade with");
 				commandState = CommandStates.WaitForTradeToOpen;
 				}
-			else
-				commandState = CommandStates.Done;
+			//else keep trying
+			
 			break;
 		case WaitForTradeToOpen:
 			//wait for widget
-			WaitForWidget(335,25);
 			//give him the item
+			if  (WaitForWidget(335,25)) {
 			script.inventory.interact("Offer-All", stateData2);
 			//press accept
 			click(264,180);
-			WaitForWidget(334,13);
+			//wait for him to accept
+			if (WaitForWidget(334,13)) {
 			click(215,303);
 			WaitForWidgetToDisappear(334,13);
+			}
+			}
 			commandState = CommandStates.Done;
 			break;
 		case NotingItems:
@@ -158,7 +165,8 @@ public class ChatCommander {
 			try{
 			script.bank.open();
 			}catch(Exception e) {
-				commandState = CommandStates.Done;
+				script.log("NotingItems failed to open bank. Trying again lol");
+				break;
 			}
 			//deposit all items
 			script.bank.depositAll();
@@ -185,25 +193,27 @@ public class ChatCommander {
 		script.mouse.move(x,y);
 		script.mouse.click(RIGHTCLICK);
 	}
-	private void WaitForWidgetToDisappear (int arg1, int arg2)
+	private boolean WaitForWidgetToDisappear (int arg1, int arg2)
 	{
 		int loops = 0;
 		while (script.widgets.get(arg1,arg2) != null || script.widgets.get(arg1,arg2).isVisible()) {
 			loops++;
 			if (loops > 80)
-				return;
+				return false;
 			rsleep(100);
 		}
+		return true;
 	}
-	private void WaitForWidget (int arg1, int arg2)
+	private boolean WaitForWidget (int arg1, int arg2)
 	{
 		int loops = 0;
 		while (script.widgets.get(arg1,arg2) == null || !script.widgets.get(arg1,arg2).isVisible()) {
 			loops++;
 			if (loops > 80)
-				return;
+				return false;
 			rsleep(100);
 		}
+		return true;
 	}
 	private void rsleep(long millis)
 	{
