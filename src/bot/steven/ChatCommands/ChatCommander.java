@@ -15,7 +15,7 @@ public class ChatCommander {
 	{
 		this.script = script;
 	}
-	CommandStates commandState = CommandStates.Done;
+	public CommandStates commandState = CommandStates.Done;
 	String stateData = "";
 	String stateData2 = "";
 	boolean isInterrupting = false;
@@ -164,19 +164,39 @@ public class ChatCommander {
 			//open bank
 			try{
 			script.bank.open();
-			}catch(Exception e) {
-				script.log("NotingItems failed to open bank. Trying again lol");
+			}catch(InterruptedException e) {
+				e.printStackTrace();
 				break;
 			}
+			rsleep(100);
 			//deposit all items
+			if (script.bank.isOpen()) {
+			//hit it twice cos god damn it
 			script.bank.depositAll();
+			script.bank.depositAll();
+
+			rsleep(100);
 			//hit withdraw-as-note
+			
 			click(288,318);
 			rsleep(100);
 			//interact, withdraw all
 			script.bank.withdrawAll(stateData);
-			commandState = CommandStates.SharedWaitingState;
+			if (script.inventory.getItems()[0].nameContains(stateData))
+			{
+				commandState = CommandStates.SharedWaitingState;	
+			}
+			else
+				//try again
+				commandState = CommandStates.NotingItems;
 			break;
+			}
+			else
+			{
+				commandState = CommandStates.NotingItems;
+				break;
+			}
+			
 		
 		}
 		

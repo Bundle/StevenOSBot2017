@@ -139,7 +139,12 @@ public class KebabCarry extends Script implements ChatCommands{
 		boolean interruptNormalBehavior = commando.isInterrupting();
 		
 		
-		log("KebabBoy is " + boy);
+		
+		
+		if (interruptNormalBehavior == false)
+			log("KebabBoy is " + boy);
+		else
+			log("interrupt: doing " + commando.commandState);
 		
 		if (commando.returnToNormalBehaviorFlag == true)
 		{
