@@ -130,6 +130,13 @@ public class KebabCarry extends Script implements ChatCommands{
 		g.drawString("name="+myPlayer().getName(),10,60);
 		g.drawString("KebabsBought="+kebabsBought,10,80);
 		g.drawString("TotalKebabs="+totalKebabs,10,100);
+		
+		boolean interruptNormalBehavior = commando.isInterrupting();
+		if (interruptNormalBehavior == false)
+			g.drawString("KebabBoy is " + boy,10,120);
+		else
+			g.drawString("interrupt: doing " + commando.commandState,10,120);
+		
 	}
 	@Override
 	public int onLoop() throws InterruptedException {

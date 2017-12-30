@@ -140,6 +140,7 @@ public class ChatCommander {
 			if (tradeboy != null)
 				{
 				tradeboy.interact("Trade with");
+				rsleep(50);
 				commandState = CommandStates.WaitForTradeToOpen;
 				}
 			//else keep trying
@@ -156,9 +157,12 @@ public class ChatCommander {
 			if (WaitForWidget(334,13)) {
 			click(215,303);
 			WaitForWidgetToDisappear(334,13);
-			}
-			}
+			//success so go back to farming
 			commandState = CommandStates.Done;
+			}
+			}
+			//try again
+			commandState = CommandStates.WaitForTradeToOpen;
 			break;
 		case NotingItems:
 			//open bank
