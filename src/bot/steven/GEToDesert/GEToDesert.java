@@ -50,6 +50,7 @@ final boolean LEFTCLICK = false, RIGHTCLICK = true;
 		coordinates.add(new Coordinate(3223,3359));
 		coordinates.add(new Coordinate(3226,3342));
 		coordinates.add(new Coordinate(3242,3338));
+		coordinates.add(new Coordinate(3253,3334));
 		coordinates.add(new Coordinate(3260,3335));
 		coordinates.add(new Coordinate(3275,3328));
 		coordinates.add(new Coordinate(3276,3309));
@@ -63,26 +64,68 @@ final boolean LEFTCLICK = false, RIGHTCLICK = true;
 		coordinates.add(new Coordinate(3277,3169));
 		
 		
+		
+		//find the coorinate he is closest to , and start there
+		
+		setToClosestBTW();
+		
+	}
+	private void setToClosestBTW()
+	{
+		double closest = Double.MAX_VALUE;
+		int closestIndex = -1;
+		for (int i = 0; i < coordinates.size(); i++)
+		{
+			Coordinate current = coordinates.get(i);
+			if ((Math.sqrt(Math.pow(myPlayer().getX()-current.x,2)
+					+Math.pow(myPlayer().getY()-current.y,2)) < closest))
+			{
+				closest = (Math.sqrt(Math.pow(myPlayer().getX()-current.x,2)
+						+Math.pow(myPlayer().getY()-current.y,2)));
+				closestIndex = i;
+			}
+		}
+		
+		currentCoordinateIndex = closestIndex;
+		
 	}
 	public void onPaint(Graphics2D g)
 	{
 		g.setPaint(Color.PINK);
-		g.drawString("walking to desert Cx " + currentCoordinateIndex + 
+		g.drawString("walking to desert Cx " + currentCoordinateIndex + "::" + 
 				coordinates.get(currentCoordinateIndex).x + "," + 
 				coordinates.get(currentCoordinateIndex).y, 10, 100);
 	}
 	
-	private int currentCoordinateIndex = -1;
+	private int currentCoordinateIndex = 0;
+	private long timeLastMove = System.currentTimeMillis();
 	@Override
 	public int onLoop() throws InterruptedException {
 		// TODO Auto-generated method stub
-		currentCoordinateIndex ++;
+		long CT = System.currentTimeMillis();
+		if (CT - timeLastMove > 6*1000) {
+			setToClosestBTW();
+			timeLastMove = CT;
+		}
 		Coordinate current = coordinates.get(currentCoordinateIndex);
 		walking.walk(new Position(current.x,current.y,0));
-		while(myPlayer().isAnimating() || myPlayer().isMoving())
+		if (myPlayer().isAnimating() || myPlayer().isMoving())
 		{
 			rsleep(50);
 		}
+		else{
+			if (Math.sqrt(Math.pow(myPlayer().getX()-current.x,2)
+					+Math.pow(myPlayer().getY()-current.y,2)) < 6)
+				{timeLastMove = CT;currentCoordinateIndex ++;}
+		}
+		
+		if (currentCoordinateIndex == coordinates.size())
+		{
+			log("all done walking to desert Cx");
+			System.exit(0);
+		}
+		
+		
 		
 		return 500;
 	}

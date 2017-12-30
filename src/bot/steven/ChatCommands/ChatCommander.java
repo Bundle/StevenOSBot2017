@@ -161,8 +161,10 @@ public class ChatCommander {
 			commandState = CommandStates.Done;
 			}
 			}
-			//try again
+			//try again. this if statement is needed because concurrency and sheeit
+			if (commandState != CommandStates.Done){ 
 			commandState = CommandStates.WaitForTradeToOpen;
+			}
 			break;
 		case NotingItems:
 			//open bank
