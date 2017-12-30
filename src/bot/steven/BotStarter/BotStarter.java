@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.TreeMap;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -15,7 +16,7 @@ public class BotStarter {
 	public BotStarter() {
 		
 	}
-	
+	private TreeMap<Integer, Process> processes = new TreeMap<>();
 	JFrame f;
 	public void begin()
 	{
@@ -54,6 +55,7 @@ public class BotStarter {
 	start.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 			String name = scriptname.getText();
+			name = name.trim();
 			for (int i = Integer.parseInt(botNumberMin.getText());
 					i <= Integer.parseInt(botNumberMax.getText());
 					i++) {
@@ -78,32 +80,38 @@ public class BotStarter {
 			}
 			if (name.equalsIgnoreCase("kill"))
 			{
-				String command = "taskkill //IM java.exe //F";
-				Runtime rt = Runtime.getRuntime();
-				try{
-				Process pr = rt.exec(command);
-				}catch(Exception ee){ee.printStackTrace(); }
-				
-				
-				return;
+				processes.get(i).destroyForcibly();
+				jtf.append("killing process #" + i);
+				continue;
+			}
+			if (name.equalsIgnoreCase("desert"))
+			{
+				name = "GEToDesert";
 			}
 			
-			String command = "java -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\OSBot 2.4.147.jar\" "
+			final String command = "java -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\OSBot 2.4.147.jar\" "
 					+ "-login gangsthurh:s0134201342 -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
 					+ "0134201342:1234"
 					+ " -script " + name + ":" + options;
 			
 			//jtf.append(command + "\r\n");
-			
 			jtf.append("starting " + name + " on #" + number + "\r\n");
-			Runtime rt = Runtime.getRuntime();
+			final int pls = i;
+			try{
+			
+			final Runtime rt = Runtime.getRuntime();
+			new Thread() {
+				public void run() {
 			try{
 			Process pr = rt.exec(command);
-			}catch(Exception ee){ee.printStackTrace(); }
-			}try{
-			Thread.sleep(1000);}catch(Exception e2){}
-		}
+			processes.put(pls,pr);
+			}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
+			
+			}}.start();
+			}catch(Exception ee){ee.printStackTrace();} 
+			}}
+		
 	});
 	
 	f.setLocation(0,100);
@@ -114,7 +122,7 @@ public class BotStarter {
 	f.add(jtf);
 	
 	jtf.append("scriptName,bot#min,bot#max GOButton\n");
-	jtf.append("[tutorial][clan][kebab][hide]\n");
+	jtf.append("[tutorial][clan][kebab][desert][hide]\n");
 	
 	
 	f.setFocusable(true);
