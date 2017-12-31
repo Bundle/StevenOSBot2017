@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.util.TreeMap;
 
 import javax.swing.JButton;
@@ -13,6 +14,32 @@ import javax.swing.JTextField;
 
 public class BotStarter {
 	
+	public int[] bannedAccounts = {
+		1,2,3,4,5,6,7,8,9,10,
+		11,12,13,14,15,16,17,18,19,20,
+		21,22,23,24,25,26,27,28,
+		31
+	};
+	private boolean banned(int i)
+	{
+		for (int x = 0; x < bannedAccounts.length; x++)
+		{
+			if (bannedAccounts[x] == i)
+				return true;
+		}
+		return false;
+	}
+	private boolean file(int i)
+	{
+		try{File f = new File("C:\\Users\\Yoloswag\\OSBot\\Data\\" + i + ".bot");
+		if (f.exists())
+			return true;
+		else
+			return false;
+		}catch(Exception e){e.printStackTrace();}
+		
+		return false;
+	}
 	public BotStarter() {
 		
 	}
@@ -59,8 +86,19 @@ public class BotStarter {
 			for (int i = Integer.parseInt(botNumberMin.getText());
 					i <= Integer.parseInt(botNumberMax.getText());
 					i++) {
+			if (banned(i))
+			{
+				jtf.append("error: " + i + " is BANNED.\r\n");
+				continue;
+			}
+			if (file(i))
+			{
+				jtf.append("error: " + i + " is Currently Running\r\n");
+				continue;
+			}
 			String number = ""+ i;
-			String options = "1234";
+			//pass these parameters to KebabCarry so it knows which bots are actively running
+			String options = "" + i;
 			if (name.equalsIgnoreCase("tutorial"))
 			{
 				name = "591";//because SDN
@@ -89,7 +127,8 @@ public class BotStarter {
 				name = "GEToDesert";
 			}
 			
-			final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\OSBot 2.4.147.jar\" "
+			final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
+					+ "OSBot 2.4.148.jar\" "
 					+ "-login gangsthurh:s0134201342 -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
 					+ "0134201342:1234"

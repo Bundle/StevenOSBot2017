@@ -1,8 +1,9 @@
 package bot.steven.KebabCarry;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.io.File;
+import java.io.PrintWriter;
 
-import org.osbot.rs07.api.Chatbox;
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.model.Item;
@@ -138,9 +139,40 @@ public class KebabCarry extends Script implements ChatCommands{
 			g.drawString("interrupt: doing " + commando.commandState,10,120);
 		
 	}
+	
+	@Override
+	public void onStart()
+	{
+		/*
+		 * create the file Cx
+		 */
+		try{
+			File f = new File(getDirectoryData() + "\\" + getParameters() + ".bot");
+			log("creating file " + getDirectoryData() + "\\" + getParameters() + ".bot");
+			f.deleteOnExit();
+		PrintWriter out = new PrintWriter(f);
+		out.println(myPlayer().getName());
+		
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+	}
+	@Override
+	public void onExit()
+	{
+		/*
+		 * delete the file Cx
+		 */
+		/*try{
+		File f = new File(getDirectoryData() + "\\" + getParameters() + ".bot");
+		f.delete();
+		
+		}catch(Exception e){e.printStackTrace();}*/
+	}
 	@Override
 	public int onLoop() throws InterruptedException {
-		
+		 
 		
 		
 		boolean interruptNormalBehavior = commando.isInterrupting();
