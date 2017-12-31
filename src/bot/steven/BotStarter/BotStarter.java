@@ -89,7 +89,7 @@ public class BotStarter {
 				name = "GEToDesert";
 			}
 			
-			final String command = "java -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\OSBot 2.4.147.jar\" "
+			final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\OSBot 2.4.147.jar\" "
 					+ "-login gangsthurh:s0134201342 -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
 					+ "0134201342:1234"

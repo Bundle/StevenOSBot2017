@@ -23,6 +23,10 @@ public class ChatCommander {
 	public void checkForInterruptText(Message message,ChatCommands commandboy) {
 		String text = message.getMessage();
 		
+		if (text.startsWith("Heyo guys"))
+		{
+			script.keyboard.typeString("//amordeus here");
+		}
 		
 		if (commandState == CommandStates.CopyPlayer)
 		{
