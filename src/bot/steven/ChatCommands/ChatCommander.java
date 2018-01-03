@@ -1,6 +1,5 @@
 package bot.steven.ChatCommands;
 
-import org.osbot.rs07.api.Keyboard;
 import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
