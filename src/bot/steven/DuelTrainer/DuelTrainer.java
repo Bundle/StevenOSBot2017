@@ -6,6 +6,9 @@ import java.awt.FlowLayout;
 import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.Scanner;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -46,33 +49,51 @@ public class DuelTrainer extends Script{
 	public void onPaint(Graphics2D g)
 	{
 		g.setPaint(Color.CYAN);
-		g.drawString(enemyName,10,80);
+		g.drawString("DuelTrainer: " + currentState,10,60);
+		g.drawString("Enemy:" + enemyName,10,80);
+		g.drawString("Food:" + foodName,10,100);
 		
 	}
 	private String enemyName = null;
 	private String foodName = null;
 	private boolean attackBack = false;
+	private boolean bankBack = false;
 	@Override
 	public void onStart() {
 		
-	final JFrame f = new JFrame("DuelTrainer GUI");
+	final JFrame f = new JFrame("DuelTrainer GUI for " + myPlayer().getName());
 	final JCheckBox attackEntry = new JCheckBox("Attack Back");
+	final JCheckBox bankEntry = new JCheckBox("move/bank");
 	f.setSize(800,200);
 	f.setLayout(new FlowLayout());
 	attackEntry.setPreferredSize(new Dimension(80,80));
+	bankEntry.setPreferredSize(new Dimension(80,80));
 	final JButton go = new JButton("ok");
 	final JTextField nameEntry = new JTextField();
 	nameEntry.setPreferredSize(new Dimension(200,80));
 	nameEntry.setToolTipText("name of dueller");
-	String[] foodStrings = {"Shark", "Jug of Wine"};
+	String[] foodStrings = {"None","Shark", "Jug of Wine"};
 	final JComboBox<String> foodEntry = new JComboBox<>(foodStrings);
 	foodEntry.setSelectedIndex(0);
 	foodEntry.setPreferredSize(new Dimension(200,80));
 	
+	//try to load
+	try{
+		File saved = new File(getDirectoryData() + "\\" + myPlayer().getName() + ".duel");
+		Scanner scan = new Scanner(saved);
+		
+		nameEntry.setText(scan.nextLine());
+		foodEntry.setSelectedItem(scan.nextLine());
+		attackEntry.setSelected(Boolean.parseBoolean(scan.nextLine()));
+		bankEntry.setSelected(Boolean.parseBoolean(scan.nextLine()));
 	
+	}catch(Exception e) {
+		e.printStackTrace();
+	}
 	f.add(nameEntry);
 	f.add(foodEntry);
 	f.add(attackEntry);
+	f.add(bankEntry);
 	f.add(go);
 	f.setVisible(true);
 	
@@ -81,6 +102,17 @@ public class DuelTrainer extends Script{
 			enemyName = nameEntry.getText();
 			foodName = (String)(foodEntry.getSelectedItem());
 			attackBack = attackEntry.isSelected();
+			bankBack = bankEntry.isSelected();
+			try{
+				File f = new File(getDirectoryData() + "\\" + myPlayer().getName() + ".duel");
+				PrintWriter out = new PrintWriter(f);
+				out.println(enemyName);
+				out.println(foodName);
+				out.println(attackBack);
+				out.println(bankBack);
+				out.close();
+				
+			}catch(Exception ee){ee.printStackTrace();}
 			f.setVisible(false);
 		}
 	});
@@ -123,11 +155,22 @@ public class DuelTrainer extends Script{
 		if (enemyName != null)//this means the UI is done
 		switch(currentState) {
 		case GettingFood:
+			if (imDefinitelyInArena()) {
+				currentState = DuelState.DuelingAndEating;
+				break;
+			}
+			if (bankBack == false)
+			{
+				currentState = DuelState.ChallengingEnemy;
+				break;
+			}
+			
 			bank.open();
 			if (bank.isOpen()){
 				bank.depositAll();
 				rsleep(500);
-				bank.withdrawAll(foodName);
+				if (!foodName.equals("None"))
+					bank.withdrawAll(foodName);
 				rsleep(500);
 				if (bank.isOpen())
 					bank.close();
@@ -139,12 +182,15 @@ public class DuelTrainer extends Script{
 				//do nothing;
 			break;
 		case ChallengingEnemy:
+			if (bankBack == true)
+				walking.walk(new Position(3377,3266,0));
 			Entity duelBuddy = players.closest(enemyName);
 			if (duelBuddy != null)
 				{duelBuddy.interact("Challenge");
-			if (WaitForWidget(482,103)) {
-				widgets.get(482,103).interact("-1");
-				//widgets.get(482, 112).interact("Load Preset Settings");
+			if (WaitForWidget(482,103)) {				
+				widgets.get(482, 112).interact("Load Preset Settings");
+				rsleep(4000);//for the fucking thing
+				widgets.get(482,103).interact("Accept");
 				if (WaitForWidget(481,70))
 				{
 					widgets.get(481,70).interact("Accept");
@@ -152,6 +198,7 @@ public class DuelTrainer extends Script{
 					{
 						widgets.get(476,78).interact("Accept");
 						currentState = DuelState.DuelingAndEating;
+						rsleep(13000);//because it has to load and then theres the 3 2 1 . . . 
 					}
 				}
 			}
@@ -160,8 +207,19 @@ public class DuelTrainer extends Script{
 			break;
 		
 		case DuelingAndEating:
+			//attack guy again
+			if (attackBack)
+			{
+				Entity duelBuddy2 = players.closest(enemyName);
+				if (duelBuddy2 != null)
+				{
+					duelBuddy2.interact("Fight");
+					rsleep(1800);//for combat check thing
+				}
+			}
 			if (imInArena())//0 means in arena
 			{
+				if (!foodName.equals("None"))
 				if (myPlayer().getHealthPercent() < 50)
 				{
 					Item[] inv = inventory.getItems();
@@ -179,13 +237,7 @@ public class DuelTrainer extends Script{
 					
 					
 				}
-				//attack guy again
-				if (attackBack)
-				{
-					Entity duelBuddy2 = players.closest(enemyName);
-					if (duelBuddy2 != null)
-						duelBuddy2.interact("Fight");
-				}
+				
 			}
 			else
 			{
@@ -201,13 +253,14 @@ public class DuelTrainer extends Script{
 	}
 	//returns true if unsure
 	private boolean imInArena() {
-		Entity please = players.closest(enemyName);
-		if (please != null) {
-			return (please.hasAction("Fight"));
-		}
 		
-		//unsure = true
-		return true;
+		return myPlayer().isHitBarVisible();//god damn it
+		//return System.currentTimeMillis() - myPlayer().getHitBarLoopCycle() < 5000;
+		
+	}
+	//returns false if unsure
+	private boolean imDefinitelyInArena() {
+		return false;
 		
 	}
 	
