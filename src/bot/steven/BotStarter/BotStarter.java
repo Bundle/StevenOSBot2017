@@ -19,11 +19,10 @@ public class BotStarter {
 		11,12,13,14,15,16,17,18,19,20,
 		21,22,23,24,25,26,27,28,29,30,
 		31,32,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,
-		54,
+		51,52,53,54,55,56,57,58,59,60,61,62
 	};
 	public int[] availableAccounts = {
-			47,44,51,49,52,53,58,57,55,56,
-			59,60,
+			63,64
 	};
 	private boolean banned(int i)
 	{
@@ -133,7 +132,7 @@ public class BotStarter {
 			}
 			
 			final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
-					+ "OSBot 2.4.149.jar\" "
+					+ "OSBot 2.4.150.jar\" "
 					+ "-login gangsthurh:s0134201342 -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
 					+ "0134201342:1234"
