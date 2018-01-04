@@ -5,6 +5,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -33,16 +34,50 @@ try{
 	private int startingNumber = -1;
 	public void begin() {
 		
-		JFrame f = new JFrame("AccountCreator by Steven Ventura") {
-			public void windowClosed(WindowEvent e) {
+		JFrame f = new JFrame("AccountCreator by Steven Ventura");
+		f.addWindowListener(new WindowListener() {
+			public void windowClosing(WindowEvent e) {
 				System.out.println("ending btw");
-				runShellCommand("Taskkill /IM AutoHotKey.exe /F");
+				runShellCommand("Taskkill /IM AutoHotkey.exe /F");
 				System.exit(0);
 			}
-			
-			
-		};
-		
+
+			@Override
+			public void windowActivated(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowClosed(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowDeactivated(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowDeiconified(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowIconified(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void windowOpened(WindowEvent arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
 		
 		
 		/*
