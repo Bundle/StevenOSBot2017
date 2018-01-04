@@ -19,10 +19,15 @@ public class BotStarter {
 		11,12,13,14,15,16,17,18,19,20,
 		21,22,23,24,25,26,27,28,29,30,
 		31,32,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,
-		51,52,53,54,55,56,57,58,59,60,61,62
+		51,52,53,54,55,56,57,58,59,60,61,62,
+		63,64,65,66,67,68,69,70,71,
+		72,73,74,75,
+		76,77,78,79,
+		80,81,82,83
 	};
 	public int[] availableAccounts = {
-			63,64
+			84,85,86,87,88,89,90,
+			91,92,93,94
 	};
 	private boolean banned(int i)
 	{
@@ -103,6 +108,10 @@ public class BotStarter {
 			String number = ""+ i;
 			//pass these parameters to KebabCarry so it knows which bots are actively running
 			String options = "" + i;
+			if (name.equalsIgnoreCase("log"))
+			{
+				name = "JustLogin";
+			}
 			if (name.equalsIgnoreCase("tutorial"))
 			{
 				name = "591";//because SDN
@@ -170,7 +179,7 @@ public class BotStarter {
 	f.add(jtf);
 	
 	jtf.append("scriptName,bot#min,bot#max GOButton\n");
-	jtf.append("[tutorial][clan][kebab][desert][hide]\n");
+	jtf.append("[tutorial][clan][kebab][desert][hide][log]\n");
 	
 	
 	f.setFocusable(true);

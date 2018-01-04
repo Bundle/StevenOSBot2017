@@ -153,6 +153,12 @@ try{
 			c = "+v::addAccount()" + n +
 				"+r::addEmail() " + n +
 				"+f::typePassword()" + n +
+				"+n::typeURL()" + n + 
+				"typeURL() { " + n + 
+				"Send, {ctrl down}t{ctrl up}" + n + 
+				"SendRaw, https://secure.runescape.com/m=account-creation/g=oldscape/create_account" + n +
+				"Send, {enter}" + n + 
+				"}" + n +
 				"typePassword() {" + n +
 				"SendInput,0134201342" + n +
 					"}" + n + 
@@ -198,14 +204,14 @@ try{
 		{
 			int index = (int)(Math.random()*lines.size());
 			String please = lines.get(index);
-			if (lines.get(index).length() < 12)
+			/*if (lines.get(index).length() < 12)
 			{
 				for (int x = 0; x < 12-lines.get(index).length(); x++)
 				{
 					int random = (int)(Math.random()*52);
 					please += "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".substring(random,random+1);
 				}
-			}
+			}*/
 			out += "\"" + please + "\", ";
 			lines.remove(index);
 		}
