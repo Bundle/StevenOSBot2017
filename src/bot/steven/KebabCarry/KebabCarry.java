@@ -14,9 +14,12 @@ import org.osbot.rs07.script.ScriptManifest;
 import bot.steven.ChatCommands.ChatCommander;
 import bot.steven.ChatCommands.ChatCommands;
 
+/*
+ * Kebab bot takes exactly 2 minutes per trip
+ */
 @ScriptManifest(author = "Steven Ventura", info = "drop kebabs btw", logo = "", name = "KebabCarry", version = 0)
 public class KebabCarry extends Script implements ChatCommands{
-	ChatCommander commando = new ChatCommander(this);
+	ChatCommander commando = new ChatCommander(this,getParameters());
 	final boolean LEFTCLICK = false, RIGHTCLICK = true;
 	
 	private void rsleep(long millis)

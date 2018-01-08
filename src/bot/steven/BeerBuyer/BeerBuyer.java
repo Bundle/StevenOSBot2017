@@ -14,9 +14,13 @@ import org.osbot.rs07.script.ScriptManifest;
 import bot.steven.ChatCommands.ChatCommander;
 import bot.steven.ChatCommands.ChatCommands;
 
+/*
+ * Wizard Mind Bombs takes 2 minutes and 15 seconds
+ */
+
 @ScriptManifest(author = "Steven Ventura", info = "wizard mind bomb", logo = "", name = "BeerBuyer", version = 0)
 public class BeerBuyer extends Script implements ChatCommands{
-	ChatCommander commando = new ChatCommander(this);
+	ChatCommander commando = new ChatCommander(this,getParameters());
 	final boolean LEFTCLICK = false, RIGHTCLICK = true;
 	
 	private void rsleep(long millis)
@@ -129,6 +133,7 @@ public class BeerBuyer extends Script implements ChatCommands{
 	public void onPaint(Graphics2D g)
 	{
 		g.setPaint(Color.CYAN);
+		g.drawString("#=" + getParameters(),10,40);
 		g.drawString("name="+myPlayer().getName(),10,60);
 		g.drawString("WizardsBought="+WizardsBought,10,80);
 		g.drawString("TotalWizards="+totalWizards,10,100);

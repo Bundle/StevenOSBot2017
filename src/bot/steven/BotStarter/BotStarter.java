@@ -37,9 +37,10 @@ public class BotStarter {
 		107
 	};
 	public int[] availableAccounts = {
-			108,//dueling nick
-			109,//member: advertising addy dagger (p)
-			110,111,112,//buying wizard's mind bomb,
+			
+			108,//ryan mcgregor (Member),dueling nick, advertising addy dagger(p)
+			
+			109,110,111,112,//buying wizard's mind bomb,
 			
 			
 			
@@ -174,7 +175,7 @@ public class BotStarter {
 				public void run() {
 			try{
 			Process pr = rt.exec(command);
-			processes.put(pls,pr);
+			//processes.put(pls,pr);
 			}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
 			
 			}}.start();
