@@ -72,7 +72,7 @@ public class DuelTrainer extends Script{
 	final JTextField nameEntry = new JTextField();
 	nameEntry.setPreferredSize(new Dimension(200,80));
 	nameEntry.setToolTipText("name of dueller");
-	String[] foodStrings = {"None","Shark", "Jug of Wine"};
+	String[] foodStrings = {"None","Shark", "Jug of wine"};
 	final JComboBox<String> foodEntry = new JComboBox<>(foodStrings);
 	foodEntry.setSelectedIndex(0);
 	foodEntry.setPreferredSize(new Dimension(200,80));
@@ -225,13 +225,18 @@ public class DuelTrainer extends Script{
 					Item[] inv = inventory.getItems();
 					for (int i = 0; i < inv.length; i++)
 					{
-						if (inv[i].nameContains(foodName))
+						if (inv[i] != null && inv[i].nameContains(foodName))
 						{
 							if (inv[i].hasAction("Eat"))
+							{
 								inv[i].interact("Eat");
+								break;
+							}
 							if (inv[i].hasAction("Drink"))
+							{
 								inv[i].interact("Drink");
-							break;
+								break;
+							}
 						}
 					}
 					

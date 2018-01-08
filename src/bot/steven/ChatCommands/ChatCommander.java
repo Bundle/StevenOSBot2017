@@ -42,6 +42,11 @@ public class ChatCommander {
 			commandState = CommandStates.Done;
 			return;
 		}
+		if (text.startsWith("Hop"))
+		{
+			stateData = text.split(" ")[1];
+			commandState = CommandStates.HoppingWorlds;
+		}
 		if (text.startsWith("Trade"))
 		{
 			stateData = message.getUsername();
@@ -57,7 +62,10 @@ public class ChatCommander {
 		if (text.startsWith("Note"))
 		{
 			stateData = text.split(" ")[1];
-			script.log("noting");
+			if (stateData.equalsIgnoreCase("wizard") || stateData.equalsIgnoreCase("wizard's"))
+				stateData = "Wizard's mind bomb";
+			
+			script.log("noting " + stateData);
 			commandState = CommandStates.NotingItems;
 		}
 		if (text.startsWith("Roll"))
@@ -95,6 +103,7 @@ public class ChatCommander {
 		SendTradeRequest,
 		WaitForTradeToOpen,
 		NotingItems,
+		HoppingWorlds,
 		Done
 	};
 	
@@ -102,7 +111,8 @@ public class ChatCommander {
 	public void doInterruptStuff() {
 		
 		switch(commandState) {
-		
+		case HoppingWorlds:
+			break;
 		case StatusCheck:
 			//do nothing yet Cx
 			break;

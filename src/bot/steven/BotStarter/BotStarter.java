@@ -23,11 +23,28 @@ public class BotStarter {
 		63,64,65,66,67,68,69,70,71,
 		72,73,74,75,
 		76,77,78,79,
-		80,81,82,83
+		80,81,82,83,
+		84,85,86,87,88,89,90,
+		91,
+		92,
+		93,94,//93 and 94 are dueling each other
+		95,//95 is nick's
+		96,97,98,//these 4 will be tutorial island buddies
+		99,100,101,102,//99-102 are also door closers LOL
+		//going to bot tutorial island on 103-110.
+		//customized by hand.
+		103,104,105,106,
+		107
 	};
 	public int[] availableAccounts = {
-			84,85,86,87,88,89,90,
-			91,92,93,94
+			108,//dueling nick
+			109,//member: advertising addy dagger (p)
+			110,111,112,//buying wizard's mind bomb,
+			
+			
+			
+			
+			
 	};
 	private boolean banned(int i)
 	{
@@ -141,7 +158,7 @@ public class BotStarter {
 			}
 			
 			final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
-					+ "OSBot 2.4.150.jar\" "
+					+ "OSBot 2.4.152.jar\" "
 					+ "-login gangsthurh:s0134201342 -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
 					+ "0134201342:1234"

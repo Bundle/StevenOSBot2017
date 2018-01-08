@@ -119,6 +119,7 @@ if (slowdown > 100)
 }
 		
 		WallObject door = (WallObject)objects.closest("Door");
+//WallObject door = (WallObject)objects.closest("Large door");
 		
 		if (door != null)
 		{
