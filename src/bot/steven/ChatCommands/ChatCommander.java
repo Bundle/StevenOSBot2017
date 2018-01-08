@@ -127,7 +127,15 @@ public class ChatCommander {
 		70,/*73,*/74,75,76,77,78,
 		86,87,88,89,90,/*91,*/92
 	};
-	
+	private void getOutOfShit() {
+		//click in the middle of the screen to get out of shit lol
+		for(int i = 0; i < 10; i++)
+		{	click(642,83);
+		rsleep(50);
+		}
+		rsleep(800);
+		
+	}
 	private String nameToCopy = null;
 	public void doInterruptStuff() {
 		
@@ -137,6 +145,7 @@ public class ChatCommander {
 				script.bank.close();
 				rsleep(500);
 			}
+			getOutOfShit();
 			click(644,480);//click ("World Switcher")
 			rsleep(50);
 			click(724,216);//click on the X

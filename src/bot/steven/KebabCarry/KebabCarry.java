@@ -131,6 +131,7 @@ public class KebabCarry extends Script implements ChatCommands{
 	public void onPaint(Graphics2D g)
 	{
 		g.setPaint(Color.GREEN);
+		g.drawString("BotNumber="+getParameters(),10,40);
 		g.drawString("name="+myPlayer().getName(),10,60);
 		g.drawString("KebabsBought="+kebabsBought,10,80);
 		g.drawString("TotalKebabs="+totalKebabs,10,100);

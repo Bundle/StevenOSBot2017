@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
+import org.osbot.rs07.api.model.InteractableObject;
 import org.osbot.rs07.api.model.Item;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
@@ -176,10 +177,21 @@ public class BeerBuyer extends Script implements ChatCommands{
 		
 		}catch(Exception e){e.printStackTrace();}*/
 	}
+	private void fixIfUpstairs() {
+		if (myPlayer().getZ() == 1) {
+			log("god damn it hes upstairs");
+			
+			InteractableObject fuckingStairs = (InteractableObject) objects.closest("Staircase"); 
+			fuckingStairs.interact("Climb-down");
+			rsleep(1000);
+		}
+		
+		
+	}
 	@Override
 	public int onLoop() throws InterruptedException {
 		 
-		
+		fixIfUpstairs();
 		
 		boolean interruptNormalBehavior = commando.isInterrupting();
 		

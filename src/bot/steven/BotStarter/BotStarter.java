@@ -130,6 +130,10 @@ public class BotStarter {
 			{
 				name = "JustLogin";
 			}
+			if (name.equalsIgnoreCase("bomb"))
+			{
+				name = "BeerBuyer";
+			}
 			if (name.equalsIgnoreCase("tutorial"))
 			{
 				name = "591";//because SDN
@@ -197,7 +201,7 @@ public class BotStarter {
 	f.add(jtf);
 	
 	jtf.append("scriptName,bot#min,bot#max GOButton\n");
-	jtf.append("[tutorial][clan][kebab][desert][hide][log]\n");
+	jtf.append("[tutorial][clan][kebab][desert][hide][bomb][log]\n");
 	
 	
 	f.setFocusable(true);
