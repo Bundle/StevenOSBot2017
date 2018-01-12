@@ -214,13 +214,13 @@ public class DuelTrainer extends Script{
 				if (duelBuddy2 != null)
 				{
 					duelBuddy2.interact("Fight");
-					rsleep(1800);//for combat check thing
+					//rsleep(1800);//for combat check thing
 				}
 			}
 			if (imInArena())//0 means in arena
 			{
 				if (!foodName.equals("None"))
-				if (myPlayer().getHealthPercent() < 50)
+				if (myPlayer().getHealthPercent() < 8)
 				{
 					Item[] inv = inventory.getItems();
 					for (int i = 0; i < inv.length; i++)
@@ -230,11 +230,13 @@ public class DuelTrainer extends Script{
 							if (inv[i].hasAction("Eat"))
 							{
 								inv[i].interact("Eat");
+								rsleep(400);
 								break;
 							}
 							if (inv[i].hasAction("Drink"))
 							{
 								inv[i].interact("Drink");
+								rsleep(2352);
 								break;
 							}
 						}
@@ -258,8 +260,8 @@ public class DuelTrainer extends Script{
 	}
 	//returns true if unsure
 	private boolean imInArena() {
-		
-		return myPlayer().isHitBarVisible();//god damn it
+		return myPlayer().getY() < 3263;//reeee
+		//return myPlayer().isHitBarVisible();//god damn it
 		//return System.currentTimeMillis() - myPlayer().getHitBarLoopCycle() < 5000;
 		
 	}

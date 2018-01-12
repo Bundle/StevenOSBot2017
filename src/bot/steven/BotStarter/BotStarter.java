@@ -34,15 +34,41 @@ public class BotStarter {
 		//going to bot tutorial island on 103-110.
 		//customized by hand.
 		103,104,105,106,
-		107
+		107,
+		108,//108 is ryan mcgregor (Member),dueling nick, advertising addy dagger(p)
+		109,110,111,112,//buying wizard's mind bomb,
+		113,//113 is Ruck Crab, used for training my main
+	};
+	public int[] justCreatedNeedsTutorialIsland = {
+			
+	};
+	public int[] doneTutorialIslandSittingAtLumby = {
+			114,115,116,
+			117,118,119,120,
+	};
+	public int[] memberAccounts = {
+			121,//this one is tutorial island by hand so i can safely get 1m from burggy
 	};
 	public int[] availableAccounts = {
 			
-			108,//ryan mcgregor (Member),dueling nick, advertising addy dagger(p)
-			
-			109,110,111,112,//buying wizard's mind bomb,
 			
 			
+			
+			
+			//working on these . . .
+			
+			
+			114,115,116,
+			117,118,119,120,
+			
+			/*
+			122,123,124,
+			125,126,127,128,
+			//working on these . . . 
+			129,130,131,132,
+			133,134,135,136,
+			*/
+			//done in vvv
 			
 			
 			
@@ -53,7 +79,7 @@ public class BotStarter {
 		{
 			if (bannedAccounts[x] == i)
 				return true;
-		}
+		} 
 		return false;
 	}
 	private boolean file(int i)
@@ -190,7 +216,7 @@ public class BotStarter {
 	jtf.append("available: " );
 	for (int i = 0; i < availableAccounts.length; i++)
 	{
-		jtf.append(availableAccounts[i] + " ");
+		jtf.append(availableAccounts[i] + ",");
 	}
 	jtf.append("\r\n");
 	f.setLocation(0,100);
