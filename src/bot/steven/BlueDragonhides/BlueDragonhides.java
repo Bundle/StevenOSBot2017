@@ -2,8 +2,9 @@ package bot.steven.BlueDragonhides;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.TreeSet;
 
 import org.jsoup.Jsoup;
@@ -11,6 +12,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
+import org.osbot.rs07.api.model.Item;
 import org.osbot.rs07.api.ui.EquipmentSlot;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
@@ -42,6 +44,30 @@ public class BlueDragonhides extends Script{
 		SellHides,
 		Done
 	}
+	private int getPrice(String name)
+	{
+		switch(name) {
+		case "Green dragonhide":
+			return PRICE_BUYING_HIDE;
+		case "Energy potion(4)":
+			return PRICE_BUYING_POT;
+		case "Green dragon leather":
+			return PRICE_SELLING_HIDE;
+		}
+		return -1;
+	}
+	
+	private void updatePrices() {
+		
+		try{
+		Scanner scan = new Scanner(new File(getDirectoryData() + "\\" + "leather.data"));
+		PRICE_BUYING_HIDE = (int)(1.05*Integer.parseInt(scan.nextLine()));
+		PRICE_BUYING_POT = (int)(1.05*Integer.parseInt(scan.nextLine()));
+		PRICE_SELLING_HIDE = (int)(1.05*Integer.parseInt(scan.nextLine()));
+		PRICE_BUYING_AMULET = (int)(1.05*Integer.parseInt(scan.nextLine()));
+		PRICE_BUYING_RING = (int)(1.05*Integer.parseInt(scan.nextLine()));
+		}catch(Exception e){}
+	}
 	BUYINGMATERIALS buyingState = BUYINGMATERIALS.CheckingBankForItems;
 	CONTROLLERBOY master = CONTROLLERBOY.BUYINGMATERIALS;
 	
@@ -68,12 +94,11 @@ public class BlueDragonhides extends Script{
 	{
 		return potAmount - (int)hideAmountLeft/26;
 	}
-	private int PRICE_BUYING_HIDE = 0, PRICE_BUYING_POT = 0, PRICE_SELLING_HIDE;
+	private int PRICE_BUYING_HIDE = 0, PRICE_BUYING_POT = 0, PRICE_SELLING_HIDE,
+			PRICE_BUYING_AMULET,PRICE_BUYING_RING;
 	@Override
 	public void onStart() {
-		PRICE_BUYING_HIDE = (int) (1.05 * lookupPrice("Green_dragonhide"));//1594;//use 1.05 times GE price
-		PRICE_BUYING_POT = (int) (1.05 * lookupPrice("Energy potion(4)"));//474;//use 1.05 times GE price
-		PRICE_SELLING_HIDE = (int) (0.95 * lookupPrice("Green dragon leather"));
+		updatePrices();
 	}
 	public void onPaint(Graphics2D g)
 	{
@@ -106,7 +131,8 @@ public class BlueDragonhides extends Script{
 	
 	@Override
 	public int onLoop() throws InterruptedException {
-		
+		String[] itemsToCheck = {"Coins","Green dragonhide","Energy potion(4)",
+		"Green dragon leather"};
 		if (master == CONTROLLERBOY.BUYINGMATERIALS)
 			switch(buyingState) {
 			case CheckingBankForItems:
@@ -114,8 +140,7 @@ public class BlueDragonhides extends Script{
 				 * 
 				 */
 				long coins=0,greenDragonhides=0,energyPots=0,finishedHides=0;
-				String[] itemsToCheck = {"Coins","Green dragonhide","Energy potion(4)",
-							"Green dragon leather"};
+				
 				
 				while (!bank.isOpen())
 				{
@@ -143,6 +168,56 @@ public class BlueDragonhides extends Script{
 				
 			case SellHides:
 				
+				while (!bank.isOpen()) {
+					bank.open();
+					rsleep(500);
+				}
+				long finishedHides2 = bank.getAmount(itemsToCheck[3]) + inventory.getAmount(itemsToCheck[3]);
+				if (finishedHides2 == 0) {
+					buyingState = BUYINGMATERIALS.CheckingBankForItems;
+					break;
+				}
+				bank.depositAll();
+				rsleep(1500);
+				bank.withdrawAll("Green dragon leather");
+				bank.close();
+				
+				Entity clerk2 = npcs.closest("Grand Exchange Clerk");
+				if (clerk2 != null)
+					clerk2.interact("Exchange");
+				else
+					break;
+				
+				if (WaitForWidget(465,7,3)) {//create buy offer widget 
+					//click on item to "offer" it
+					inventory.getItem("Green dragon leather").interact("Offer");
+					if (WaitForWidget(162,39,2)) {
+						click(34,388);
+						rsleep(3000);
+						click(386,205);
+						if (WaitForWidget(162,34)) {
+							keyboard.typeString("" + PRICE_SELLING_HIDE); 
+							rsleep(1500);
+							click(260,287);//click confirm
+							//wait for collect button to appear
+							if (WaitForWidget(465,6,1))
+							{
+								click(456,64);
+							}
+							//click on it
+							
+						}
+						
+						}
+					//click on ... and offer 5% underneath
+					//PRICE_SELLING_HIDE
+					//create offer
+						
+				}
+				
+				
+				
+				
 				break;
 				
 			case CheckForTeleportCharges:
@@ -156,15 +231,17 @@ public class BlueDragonhides extends Script{
 				
 				if (!hasNeck)
 				{
+					shoppingList.add("Amulet of glory(6)");
 					buyingState = BUYINGMATERIALS.BuyingFromShoppingList;
 				}
 				
-				boolean hasRing = equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth(5)") ||
-						equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth(4)") || 
-						equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth(3)") || 
-						equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth(2)") || 
-						equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth(1)");
+				boolean hasRing = equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth (5)") ||
+						equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth (4)") || 
+						equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth (3)") || 
+						equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth (2)") || 
+						equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth (1)");
 				if (!hasRing) {
+					shoppingList.add("Ring of wealth (5)");
 					buyingState = BUYINGMATERIALS.BuyingFromShoppingList;
 				}
 				if (hasNeck && hasRing) {
@@ -177,6 +254,13 @@ public class BlueDragonhides extends Script{
 			case BuyingFromShoppingList:
 				
 				String itemName = "";
+				
+				//get 1 item name
+				for (String s : shoppingList) {
+					itemName = s;
+					break;
+				}
+				
 				
 				
 				while (!bank.isOpen()) {
@@ -194,13 +278,13 @@ public class BlueDragonhides extends Script{
 					click(59,145);
 					if (WaitForWidget(465,24,21)) {
 						click(113,117);
-						keyboard.typeString("Green dragonhide");
+						keyboard.typeString(itemName);
 						if (WaitForWidget(162,39,2)) {
 						click(34,388);
 						rsleep(3000);
 						click(386,205);
 						if (WaitForWidget(162,34)) {
-							keyboard.typeString("" + PRICE_BUYING_HIDE); 
+							keyboard.typeString(""+getPrice(itemName)); 
 						}
 						}
 					}
@@ -378,8 +462,16 @@ public class BlueDragonhides extends Script{
 	public static void main(String[]args) {
 		
 		
+		try{File f = new File("C:\\Users\\Yoloswag\\OSBot\\Data\\leather.data");
+		PrintWriter p = new PrintWriter(f);
+		p.write(lookupPrice("Green_dragonhide") + "\r\n");
+		p.write(lookupPrice("Energy potion(4)") + "\r\n");
+		p.write(lookupPrice("Green dragon leather") + "\r\n");
+		p.write(lookupPrice("Amulet of glory(6)") + "\r\n");
+		p.write(lookupPrice("Ring of wealth (5)") + "\r\n");
+		p.close();
 		
-		
+		}catch(Exception e){e.printStackTrace();}
 		
 double howmuchgold,costofhides,numberofbots;
 Scanner scan = new Scanner(System.in);
