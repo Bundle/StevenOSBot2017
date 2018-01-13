@@ -189,7 +189,7 @@ public class BotStarter {
 			}
 			
 			final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
-					+ "OSBot 2.4.152.jar\" "
+					+ "OSBot 2.4.153.jar\" "
 					+ "-login gangsthurh:s0134201342 -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
 					+ "0134201342:1234"

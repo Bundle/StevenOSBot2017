@@ -12,7 +12,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
-import org.osbot.rs07.api.ui.EquipmentSlot;
+import org.osbot.rs07.api.model.WallObject;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 
@@ -29,7 +29,8 @@ public class BlueDragonhides extends Script{
 		RunToTanner,
 		TradeWithTanner,
 		TanAllHides,
-		ReturnToBank
+		ReturnToBank,
+		Done
 	}
 	enum CONTROLLERBOY {
 		HIDESTATES,
@@ -41,6 +42,7 @@ public class BlueDragonhides extends Script{
 		TeleportToDesert,
 		BuyingFromShoppingList,
 		SellHides,
+		WalkToDesertBank,
 		Done
 	}
 	private int getPrice(String name)
@@ -125,6 +127,14 @@ public class BlueDragonhides extends Script{
 		return hours + ":" + minutes + ":" + seconds;
 	}
 	
+	private void waitForMovements()
+	{
+		while(myPlayer().isAnimating() || myPlayer().isMoving())
+		{
+			rsleep(500);
+		}
+	}
+	
 	private TreeMap<String,Integer> shoppingList = new TreeMap<String,Integer>();
 	
 	int hideAmountLeft = 0;
@@ -151,7 +161,8 @@ public class BlueDragonhides extends Script{
 					rsleep(500);
 				}
 				
-				coins = bank.getAmount(itemsToCheck[0]) + inventory.getAmount(itemsToCheck[0]);
+				coins = bank.getAmount(itemsToCheck[0]) + inventory.getAmount(itemsToCheck[0])
+						- 50000;//save 50k coins for buying amulets lol
 				greenDragonhides = bank.getAmount(itemsToCheck[1]) + inventory.getAmount(itemsToCheck[1]);
 				energyPots = bank.getAmount(itemsToCheck[2]) + inventory.getAmount(itemsToCheck[2]);
 				finishedHides = bank.getAmount(itemsToCheck[3]) + inventory.getAmount(itemsToCheck[3]);
@@ -222,16 +233,14 @@ public class BlueDragonhides extends Script{
 							if (WaitForWidget(465,6,1))
 							{
 								click(456,64);
+								//fall back and let base case handle the state change
 							}
 							//click on it
 							
 						}
 						
 						}
-					//click on ... and offer 5% underneath
-					//PRICE_SELLING_HIDE
-					//create offer
-						
+					
 				}
 				
 				
@@ -241,25 +250,47 @@ public class BlueDragonhides extends Script{
 				
 			case CheckForTeleportCharges:
 				
-				boolean hasNeck = equipment.isWearingItem(EquipmentSlot.AMULET,"Amulet of glory(1)") ||
-				equipment.isWearingItem(EquipmentSlot.AMULET,"Amulet of glory(2)") ||
-				equipment.isWearingItem(EquipmentSlot.AMULET,"Amulet of glory(3)") || 
-				equipment.isWearingItem(EquipmentSlot.AMULET,"Amulet of glory(4)") || 
-				equipment.isWearingItem(EquipmentSlot.AMULET,"Amulet of glory(5)") ||
-				equipment.isWearingItem(EquipmentSlot.AMULET,"Amulet of glory(6)");
+				while(!bank.isOpen()) {
+					bank.open();
+					rsleep(500);
+				}
+				
+				boolean hasNeck = bank.getAmount("Amulet of glory(6)") + 
+						bank.getAmount("Amulet of glory(5)") + 
+						bank.getAmount("Amulet of glory(4)") + 
+						bank.getAmount("Amulet of glory(3)") +
+						bank.getAmount("Amulet of glory(2)") +
+						bank.getAmount("Amulet of glory(1)") + 
+						inventory.getAmount("Amulet of glory(6)") +
+						inventory.getAmount("Amulet of glory(5)") +
+						inventory.getAmount("Amulet of glory(4)") + 
+						inventory.getAmount("Amulet of glory(3)") + 
+						inventory.getAmount("Amulet of glory(2)") + 
+						inventory.getAmount("Amulet of glory(1)") > 0;
+				
+						
+						
+				
 				
 				if (!hasNeck)
 				{
 					shoppingList.put("Amulet of glory(6)",1);//getPrice("Amulet of glory(6)"));
 					buyingState = BUYINGMATERIALS.BuyingFromShoppingList;
 				}
-				//TODO: 
-				//TODO:after buying the ring of wealth, he needs to equip it so that it is detected here.
-				boolean hasRing = equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth (5)") ||
-						equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth (4)") || 
-						equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth (3)") || 
-						equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth (2)") || 
-						equipment.isWearingItem(EquipmentSlot.RING, "Ring of wealth (1)");
+				
+				boolean hasRing = bank.getAmount("Ring of wealth (6)") + 
+						bank.getAmount("Ring of wealth (5)") + 
+						bank.getAmount("Ring of wealth (4)") + 
+						bank.getAmount("Ring of wealth (3)") +
+						bank.getAmount("Ring of wealth (2)") +
+						bank.getAmount("Ring of wealth (1)") + 
+						inventory.getAmount("Ring of wealth (6)") +
+						inventory.getAmount("Ring of wealth (5)") +
+						inventory.getAmount("Ring of wealth (4)") + 
+						inventory.getAmount("Ring of wealth (3)") + 
+						inventory.getAmount("Ring of wealth (2)") + 
+						inventory.getAmount("Ring of wealth (1)") > 0;
+				
 				if (!hasRing) {
 					shoppingList.put("Ring of wealth (5)",1);//getPrice("Ring of wealth (5)"));
 					buyingState = BUYINGMATERIALS.BuyingFromShoppingList;
@@ -269,6 +300,68 @@ public class BlueDragonhides extends Script{
 				}
 				
 				
+				
+				break;
+			case TeleportToDesert:
+				/*
+				 * teleport to the desert using amulet of glory,
+				 * and then get through the room and run to the bank.
+				 * then pass control back to the thing.
+				 */
+				
+				while(!bank.isOpen()) {
+				bank.open();
+				rsleep(500);
+				}
+				bank.depositAll();
+				
+				for (int i = 1; i <= 6; i++)
+					bank.withdrawAll("Amulet of glory(" + i + ")");
+				
+				bank.close();
+				
+				for (int i = 1; i <= 6; i++)
+				{
+					if (inventory.contains("Amulet of glory(" + i + ")"))
+					{
+						//TODO fix location name
+						inventory.getItem("Amulet of glory(" + i + ")").interact("Rub");
+						if (WaitForWidget(219,0,4)) {
+							click(261,435);//teleport to Al Kharid
+						buyingState = BUYINGMATERIALS.WalkToDesertBank;
+						}
+						break;
+						
+						
+					}
+				}
+				
+				
+				
+				
+				
+				
+				
+				
+				break;
+			case WalkToDesertBank:
+				
+//open the door if it is closed
+				WallObject door = (WallObject) objects.closest("Large door");
+				if (door.getOrientation() == 3)//closed is 3 on both parts of big door
+					door.interact("Open");
+				walking.walk(new Position(3280,3172,0));
+				waitForMovements();
+				
+				
+				
+				//walk to a few waypoints
+				
+				//arrive at the bank
+				
+				//pass control to hide tanner thing
+				
+				buyingState = BUYINGMATERIALS.Done;
 				
 				break;
 			case BuyingFromShoppingList:
@@ -338,6 +431,7 @@ public class BlueDragonhides extends Script{
 				break;
 			case Done:
 				master = CONTROLLERBOY.HIDESTATES;
+				currentState = HIDESTATES.OpenBank;
 				break;
 			}
 		else if (master == CONTROLLERBOY.HIDESTATES)
@@ -380,10 +474,43 @@ public class BlueDragonhides extends Script{
 			rsleep(1000);//sometimes it doesnt get the fuckin hides
 			hideAmountLeft = (int)bank.getAmount("Green dragonhide");
 			potAmount = (int)bank.getAmount("Energy potion(4)");
+			if (hideAmountLeft == 0) {
+				currentState = HIDESTATES.ReturnToGE;
+				break;
+			}
 			bank.withdrawAll("Green dragonhide");
 			
 			rsleep(500);
 			currentState = HIDESTATES.CloseBank;
+			break;
+		case ReturnToGE:
+			while(!bank.isOpen()) {
+				bank.open();
+				rsleep(500);
+			}
+			for (int i = 1; i <= 5; i++)
+				bank.withdrawAll("Ring of wealth (" + i + ")");
+			bank.close();
+			
+			for (int i = 1; i <= 5; i++)
+			{
+				if (inventory.contains("Ring of wealth (" + i + ")"))
+				{
+					inventory.getItem("Ring of wealth (" + i + ")").interact("Rub");
+					if (WaitForWidget()) {
+						click();
+						currentState = HIDESTATES.Done;
+						break;
+					}
+				}
+			}
+			
+			
+			
+			break;
+		case Done:
+			master = BUYINGMATERIALS;
+			buyingState = BUYINGMATERIALS.CheckingBankForItems;
 			break;
 		case CloseBank:
 			bank.close();
