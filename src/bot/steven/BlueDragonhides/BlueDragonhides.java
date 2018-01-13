@@ -30,6 +30,7 @@ public class BlueDragonhides extends Script{
 		TradeWithTanner,
 		TanAllHides,
 		ReturnToBank,
+		ReturnToGE,
 		Done
 	}
 	enum CONTROLLERBOY {
@@ -45,6 +46,8 @@ public class BlueDragonhides extends Script{
 		WalkToDesertBank,
 		Done
 	}
+	BUYINGMATERIALS buyingState = BUYINGMATERIALS.CheckingBankForItems;
+	CONTROLLERBOY master = CONTROLLERBOY.BUYINGMATERIALS;
 	private int getPrice(String name)
 	{
 		switch(name) {
@@ -73,8 +76,7 @@ public class BlueDragonhides extends Script{
 		PRICE_BUYING_RING = (int)(1.05*Integer.parseInt(scan.nextLine()));
 		}catch(Exception e){}
 	}
-	BUYINGMATERIALS buyingState = BUYINGMATERIALS.CheckingBankForItems;
-	CONTROLLERBOY master = CONTROLLERBOY.BUYINGMATERIALS;
+	
 	
 	private void rsleep(long millis)
 	{
@@ -104,6 +106,19 @@ public class BlueDragonhides extends Script{
 	@Override
 	public void onStart() {
 		updatePrices();
+		
+		if (myPlayer().getY() < 3200) {
+			//he's in the desert m8
+			 master = CONTROLLERBOY.HIDESTATES;
+			currentState = HIDESTATES.RunToTanner;
+		}
+		else
+		{
+			//he's at the GE m8
+			master = CONTROLLERBOY.BUYINGMATERIALS;
+			buyingState = BUYINGMATERIALS.CheckingBankForItems;
+		}
+		
 	}
 	public void onPaint(Graphics2D g)
 	{
@@ -144,6 +159,8 @@ public class BlueDragonhides extends Script{
 	
 	@Override
 	public int onLoop() throws InterruptedException {
+		//TODO: determine player location upon logging in, because
+		//he could still be in the desert when i start the bot
 		String[] itemsToCheck = {"Coins","Green dragonhide","Energy potion(4)",
 		"Green dragon leather"};
 		if (master == CONTROLLERBOY.BUYINGMATERIALS)
@@ -209,6 +226,9 @@ public class BlueDragonhides extends Script{
 				}
 				bank.depositAll();
 				rsleep(1500);
+				//click the note thing
+				click(295,322);
+				rsleep(500);
 				bank.withdrawAll("Green dragon leather");
 				bank.close();
 				
@@ -324,7 +344,6 @@ public class BlueDragonhides extends Script{
 				{
 					if (inventory.contains("Amulet of glory(" + i + ")"))
 					{
-						//TODO fix location name
 						inventory.getItem("Amulet of glory(" + i + ")").interact("Rub");
 						if (WaitForWidget(219,0,4)) {
 							click(261,435);//teleport to Al Kharid
@@ -350,8 +369,20 @@ public class BlueDragonhides extends Script{
 				WallObject door = (WallObject) objects.closest("Large door");
 				if (door.getOrientation() == 3)//closed is 3 on both parts of big door
 					door.interact("Open");
-				walking.walk(new Position(3280,3172,0));
+				//TODO: don't let it leave this state until its down there
+				rsleep(2000);
+				
+				walking.walk(new Position(3292,3170,0));
+				rsleep(1000);
 				waitForMovements();
+				walking.walk(new Position(3292,3177,0));
+				rsleep(1000);
+				waitForMovements();
+				walking.walk(new Position(3279,3181,0));
+				rsleep(1000);
+				waitForMovements();
+				
+				
 				
 				
 				
@@ -497,8 +528,9 @@ public class BlueDragonhides extends Script{
 				if (inventory.contains("Ring of wealth (" + i + ")"))
 				{
 					inventory.getItem("Ring of wealth (" + i + ")").interact("Rub");
-					if (WaitForWidget()) {
-						click();
+					if (WaitForWidget(219,0,2)) {
+						rsleep(800);
+						click(250,400);
 						currentState = HIDESTATES.Done;
 						break;
 					}
@@ -509,7 +541,7 @@ public class BlueDragonhides extends Script{
 			
 			break;
 		case Done:
-			master = BUYINGMATERIALS;
+			master = CONTROLLERBOY.BUYINGMATERIALS;
 			buyingState = BUYINGMATERIALS.CheckingBankForItems;
 			break;
 		case CloseBank:
