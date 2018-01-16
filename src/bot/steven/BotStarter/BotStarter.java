@@ -41,19 +41,19 @@ public class BotStarter {
 		114,115,//these two are hand customized and botted tutorial island, hand walked to GE
 	};
 	public int[] justCreatedNeedsTutorialIsland = {
-			122,123
+			
 	};
 	public int[] doneTutorialIslandSittingAtLumby = {
 			116,
-			
+			122,123
 	};
 	public int[] kebabBots = {
 			117,118,119,120,
 	};
 	public int[] memberAccounts = {
-			116,//hand customized, botted tutorial island
+			116,//116oscx: hand customized, botted tutorial island
 			//giving both of them 500k and seeing how far they get
-			121,//this one is tutorial island by hand so i can safely get 1m from burggy
+			121,//121LordBurk: this one is tutorial island by hand so i can safely get 1m from burggy
 	};
 	public int[] availableAccounts = {
 			
@@ -66,7 +66,8 @@ public class BotStarter {
 			
 			114,115,116,
 			117,118,119,120,
-			
+			121,
+			122,123
 			/*
 			122,123,124,
 			125,126,127,128,
@@ -190,7 +191,7 @@ public class BotStarter {
 			}
 			if (name.equalsIgnoreCase("hide"))
 			{
-				name = "BlueDragonhides";
+				name = "GreenDragonhides";
 			}
 			if (name.equalsIgnoreCase("kill"))
 			{

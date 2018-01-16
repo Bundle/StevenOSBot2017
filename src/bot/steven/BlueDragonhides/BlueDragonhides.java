@@ -304,7 +304,7 @@ public class BlueDragonhides extends Script{
 				
 				
 				
-				if (coins > 400000) {
+				if (coins > 250000) {
 					int numHidespls = 
 							(int)coins/(getPrice("Green dragonhide") + getPrice("Energy potion(4)")/26);
 							//(int)coins/(getPrice("Green dragonhide"))
@@ -614,7 +614,8 @@ public class BlueDragonhides extends Script{
 			
 			WallObject door = (WallObject) objects.closest("Large door");
 			if (door != null && Math.sqrt(Math.pow(door.getX() - myPlayer().getX(),2) + 
-						Math.pow(door.getY() - myPlayer().getY(),2) ) < 8)
+						Math.pow(door.getY() - myPlayer().getY(),2) ) < 12
+						&& myPlayer().getY() < 3179 && myPlayer().getX() > 3280)
 			{
 				master = CONTROLLERBOY.BUYINGMATERIALS;
 				buyingState = BUYINGMATERIALS.WalkToDesertBank;
