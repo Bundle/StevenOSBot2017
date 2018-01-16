@@ -45,6 +45,9 @@ public class BotStarter {
 	};
 	public int[] doneTutorialIslandSittingAtLumby = {
 			116,
+			
+	};
+	public int[] kebabBots = {
 			117,118,119,120,
 	};
 	public int[] memberAccounts = {

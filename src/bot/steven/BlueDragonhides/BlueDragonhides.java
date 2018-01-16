@@ -2,8 +2,13 @@ package bot.steven.BlueDragonhides;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Toolkit;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.TreeMap;
 
@@ -21,9 +26,13 @@ import org.osbot.rs07.script.ScriptManifest;
  * TODO: DONE bot gets stuck in the desert waiting room and his steady state says "state: opening bank"
  * TODO: bot gets stuck in G E saying "energy potion" out loud and error message "please choose an item"
  * TODO: DONE if tanner door gets closed, we need to re-open it. on state TanningHides
- * TODO: make a "finish up" command that tells the bots they are currently doing their last run.
+ * TODO: DONE make a "finish up" command that tells the bots they are currently doing their last run.
  * TODO: DONE returntoGE state doesnt empty inventory
  * TODO: if the banrate is less than 2 days , then fuckin make it hop worlds on detect
+ * TODO: print out the users total WEALTH and LIQUIDATABLE on the screen
+ * TODO: reeee the price of green is hitting giga low... will need to imlpement other colors as well.
+ * (put the 4 colors on the UI with their 4 prices and a PRICECHECK button)
+ * TODO: what do i do when they dont buy out instantly? reeeeeeeeee
  */
 
 @ScriptManifest(author = "Steven Ventura", info = "Tan Green Dragonhides", logo = "", name = "GreenDragonhides", version = 0)
@@ -53,6 +62,7 @@ public class BlueDragonhides extends Script{
 		BuyingFromShoppingList,
 		SellHides,
 		WalkToDesertBank,
+		FinishedBoy,
 		Done
 	}
 	BUYINGMATERIALS buyingState = BUYINGMATERIALS.CheckingBankForItems;
@@ -73,7 +83,6 @@ public class BlueDragonhides extends Script{
 		}
 		return -1;
 	}
-	//TODO: they got stuck when there was a collection to be made. on poitons. so put hte thing before the thing
 	
 	private void updatePrices() {
 		
@@ -84,6 +93,7 @@ public class BlueDragonhides extends Script{
 		PRICE_SELLING_HIDE = (int)(0.95*Integer.parseInt(scan.nextLine()));
 		PRICE_BUYING_AMULET = (int)(1.10*Integer.parseInt(scan.nextLine()));
 		PRICE_BUYING_RING = (int)(1.10*Integer.parseInt(scan.nextLine()));
+		scan.close();
 		}catch(Exception e){}
 	}
 	
@@ -111,10 +121,89 @@ public class BlueDragonhides extends Script{
 	{
 		return potAmount - (int)hideAmountLeft/26;
 	}
+	
+	public void draw(Graphics2D g, StevenButton s)
+	{
+		if (s.pressed == true)
+		g.setPaint(Color.BLUE);
+		else
+			g.setPaint(Color.GRAY);
+		
+		g.fillRect(s.x,s.y,s.width,s.height);
+		
+		g.setPaint(Color.WHITE);
+		g.drawString(s.text,s.x,s.y+15);
+	}
+	class StevenButton {
+		
+		public int x=-1000, y=-1000, width=80, height=20;
+		public String text = "button";
+		public boolean pressed = false;
+		
+		public StevenButton(String text, int x, int y) {
+			this.text = text; this.x = x; this.y  = y;
+
+		}
+		//this gets overridden lol
+		public void onStevenClick() {
+			
+		}
+		
+	}
+	ArrayList<StevenButton> stevenbuttons = new ArrayList<>();
+	private boolean finishAfterThis = false;
 	private int PRICE_BUYING_HIDE = 0, PRICE_BUYING_POT = 0, PRICE_SELLING_HIDE,
 			PRICE_BUYING_AMULET,PRICE_BUYING_RING;
 	@Override
 	public void onStart() {
+		
+		stevenbuttons.add(new StevenButton("Finish Up",10,440) {
+			public void onStevenClick() {
+				finishAfterThis = !finishAfterThis;
+			}
+		});
+		
+		bot.addMouseListener(new MouseListener() {
+			//TODO: ADD IN THE BUTTONS Cx
+			@Override
+			public void mouseClicked(MouseEvent arg0) {
+
+				log("x= " + arg0.getX() + " y= " + arg0.getY());
+				for (StevenButton b : stevenbuttons) {
+					if (new Rectangle2D.Double(b.x,b.y,b.width,b.height).contains(arg0.getX(),arg0.getY())){
+						b.onStevenClick();
+						b.pressed = !b.pressed;
+					}
+				}
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent arg0) {
+				
+				
+			}
+
+			@Override
+			public void mouseExited(MouseEvent arg0) {
+				
+			}
+
+			@Override
+			public void mousePressed(MouseEvent arg0) {
+				
+				
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent arg0) {
+				
+			}
+			
+			
+			
+		});
+		
+		
 		updatePrices();
 		
 		if (myPlayer().getY() < 3200) {
@@ -132,6 +221,11 @@ public class BlueDragonhides extends Script{
 	}
 	public void onPaint(Graphics2D g)
 	{
+		for (StevenButton b : stevenbuttons)
+		{
+			this.draw(g,b);
+		}
+		
 		g.setPaint(Color.CYAN);
 		if (master == CONTROLLERBOY.BUYINGMATERIALS) 
 			g.drawString("HIDEBOT: interrupt: " + buyingState,10,60);
@@ -140,6 +234,11 @@ public class BlueDragonhides extends Script{
 		g.drawString("extra pots:" + getExtraPotAmount(),10,80);
 		g.drawString("Left=" + hideAmountLeft + ",Done=" + hideAmountDone, 10,100);
 		g.drawString("TimeLeft=" + reee((int)(hideAmountLeft/26*36)),10,120);
+		
+		
+		g.setPaint(Color.BLACK);
+		g.drawString("abortCx",0,0);
+		
 	}
 	private String reee(int seconds)
 	{
@@ -167,18 +266,19 @@ public class BlueDragonhides extends Script{
 	int potAmount = 0;
 	private void openTannerDoor() {
 		for (RS2Object o : objects.getAll()) {
+			try{
 			WallObject doorplease = (WallObject)o;
 			//door.x is 3277 door.y is 3191
 			if (doorplease.getX() == 3277 && doorplease.getY() == 3191) {
 				doorplease.interact("Open");
+				break;
 			}
+			}catch(Exception e){}
 		}
 	}
 	
 	@Override
 	public int onLoop() throws InterruptedException {
-		//TODO: determine player location upon logging in, because
-		//he could still be in the desert when i start the bot
 		String[] itemsToCheck = {"Coins","Green dragonhide","Energy potion(4)",
 		"Green dragon leather"};
 		if (master == CONTROLLERBOY.BUYINGMATERIALS)
@@ -225,12 +325,20 @@ public class BlueDragonhides extends Script{
 				{
 					buyingState = BUYINGMATERIALS.CheckForTeleportCharges;
 				}
-				
-				
-				
-				
+				if (finishAfterThis) {
+				Toolkit.getDefaultToolkit().beep();
+				rsleep(1000);
+				Toolkit.getDefaultToolkit().beep();
+				rsleep(500);
+				Toolkit.getDefaultToolkit().beep();
+				rsleep(500);
+				buyingState = BUYINGMATERIALS.FinishedBoy;
+				}
 				break;
-				
+			case FinishedBoy:
+				buyingState = BUYINGMATERIALS.FinishedBoy;
+				//TODO: have a way to un-finish or something
+				break;
 			case SellHides:
 				
 				while (!bank.isOpen()) {
@@ -255,6 +363,10 @@ public class BlueDragonhides extends Script{
 					clerk2.interact("Exchange");
 				else
 					break;
+				
+				//click collect
+				rsleep(2000);
+				click(456,64);
 				
 				if (WaitForWidget(465,7,3)) {//create buy offer widget 
 					//click on item to "offer" it
@@ -388,7 +500,6 @@ public class BlueDragonhides extends Script{
 				
 				if (door != null  && door.getOrientation() == 3)//closed is 3 on both parts of big door
 					door.interact("Open");
-				//TODO: don't let it leave this state until its down there
 				rsleep(2000);
 				if (door != null  && door.getOrientation() == 3)
 					break;//reeeeeeeeeeee. probably relog idk this could mean someones shutting the door?
@@ -419,6 +530,7 @@ public class BlueDragonhides extends Script{
 				break;
 			case BuyingFromShoppingList:
 				
+				
 				System.out.println(shoppingList);
 				String itemName = "";
 				
@@ -442,7 +554,13 @@ public class BlueDragonhides extends Script{
 					clerk.interact("Exchange");
 				
 				
+				//click collect button btw
+				rsleep(1500);
+				click(456,64);
+				
+				
 				if (WaitForWidget(465,7,3)) {//create buy offer widget 
+					
 					click(456,64);
 					rsleep(800);
 					click(59,145);
