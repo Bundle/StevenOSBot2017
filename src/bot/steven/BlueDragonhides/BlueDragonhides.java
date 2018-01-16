@@ -12,10 +12,19 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
+import org.osbot.rs07.api.model.RS2Object;
 import org.osbot.rs07.api.model.WallObject;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 
+/*
+ * TODO: DONE bot gets stuck in the desert waiting room and his steady state says "state: opening bank"
+ * TODO: bot gets stuck in G E saying "energy potion" out loud and error message "please choose an item"
+ * TODO: DONE if tanner door gets closed, we need to re-open it. on state TanningHides
+ * TODO: make a "finish up" command that tells the bots they are currently doing their last run.
+ * TODO: DONE returntoGE state doesnt empty inventory
+ * TODO: if the banrate is less than 2 days , then fuckin make it hop worlds on detect
+ */
 
 @ScriptManifest(author = "Steven Ventura", info = "Tan Green Dragonhides", logo = "", name = "GreenDragonhides", version = 0)
 public class BlueDragonhides extends Script{
@@ -64,16 +73,17 @@ public class BlueDragonhides extends Script{
 		}
 		return -1;
 	}
+	//TODO: they got stuck when there was a collection to be made. on poitons. so put hte thing before the thing
 	
 	private void updatePrices() {
 		
 		try{
 		Scanner scan = new Scanner(new File(getDirectoryData() + "\\" + "leather.data"));
 		PRICE_BUYING_HIDE = (int)(1.05*Integer.parseInt(scan.nextLine()));
-		PRICE_BUYING_POT = (int)(1.05*Integer.parseInt(scan.nextLine()));
+		PRICE_BUYING_POT = (int)(2.00*Integer.parseInt(scan.nextLine()));
 		PRICE_SELLING_HIDE = (int)(0.95*Integer.parseInt(scan.nextLine()));
-		PRICE_BUYING_AMULET = (int)(1.05*Integer.parseInt(scan.nextLine()));
-		PRICE_BUYING_RING = (int)(1.05*Integer.parseInt(scan.nextLine()));
+		PRICE_BUYING_AMULET = (int)(1.10*Integer.parseInt(scan.nextLine()));
+		PRICE_BUYING_RING = (int)(1.10*Integer.parseInt(scan.nextLine()));
 		}catch(Exception e){}
 	}
 	
@@ -110,7 +120,7 @@ public class BlueDragonhides extends Script{
 		if (myPlayer().getY() < 3200) {
 			//he's in the desert m8
 			 master = CONTROLLERBOY.HIDESTATES;
-			currentState = HIDESTATES.RunToTanner;
+			currentState = HIDESTATES.OpenBank;
 		}
 		else
 		{
@@ -155,7 +165,15 @@ public class BlueDragonhides extends Script{
 	int hideAmountLeft = 0;
 	int hideAmountDone = 0;
 	int potAmount = 0;
-	
+	private void openTannerDoor() {
+		for (RS2Object o : objects.getAll()) {
+			WallObject doorplease = (WallObject)o;
+			//door.x is 3277 door.y is 3191
+			if (doorplease.getX() == 3277 && doorplease.getY() == 3191) {
+				doorplease.interact("Open");
+			}
+		}
+	}
 	
 	@Override
 	public int onLoop() throws InterruptedException {
@@ -367,10 +385,14 @@ public class BlueDragonhides extends Script{
 				
 //open the door if it is closed
 				WallObject door = (WallObject) objects.closest("Large door");
-				if (door.getOrientation() == 3)//closed is 3 on both parts of big door
+				
+				if (door != null  && door.getOrientation() == 3)//closed is 3 on both parts of big door
 					door.interact("Open");
 				//TODO: don't let it leave this state until its down there
 				rsleep(2000);
+				if (door != null  && door.getOrientation() == 3)
+					break;//reeeeeeeeeeee. probably relog idk this could mean someones shutting the door?
+					//usually it just means it lagged and hasnt closed the door yet
 				
 				walking.walk(new Position(3292,3170,0));
 				rsleep(1000);
@@ -419,7 +441,10 @@ public class BlueDragonhides extends Script{
 				if (clerk != null)
 					clerk.interact("Exchange");
 				
+				
 				if (WaitForWidget(465,7,3)) {//create buy offer widget 
+					click(456,64);
+					rsleep(800);
 					click(59,145);
 					if (WaitForWidget(465,24,21)) {
 						click(113,117);
@@ -468,7 +493,21 @@ public class BlueDragonhides extends Script{
 		else if (master == CONTROLLERBOY.HIDESTATES)
 		switch (currentState) {
 		case OpenBank:
+			
+			WallObject door = (WallObject) objects.closest("Large door");
+			if (door != null && Math.sqrt(Math.pow(door.getX() - myPlayer().getX(),2) + 
+						Math.pow(door.getY() - myPlayer().getY(),2) ) < 8)
+			{
+				master = CONTROLLERBOY.BUYINGMATERIALS;
+				buyingState = BUYINGMATERIALS.WalkToDesertBank;
+				if (door.getOrientation() == 3)//closed is 3 on both parts of big door
+					door.interact("Open");
+				break;
+			}
+			
+			
 			walking.walk(new Position(3278,3179,0));
+			rsleep(500);
 			walking.walk(new Position(3278,3179,0));
 			while(myPlayer().isAnimating() || myPlayer().isMoving())
 			{
@@ -503,7 +542,8 @@ public class BlueDragonhides extends Script{
 			bank.withdraw("Energy potion(4)", 1);
 			//right click on hides in bank and withdraw all
 			rsleep(1000);//sometimes it doesnt get the fuckin hides
-			hideAmountLeft = (int)bank.getAmount("Green dragonhide");
+			if (bank.isOpen())
+				hideAmountLeft = (int)bank.getAmount("Green dragonhide") + (int)inventory.getAmount("Green dragonhide");
 			potAmount = (int)bank.getAmount("Energy potion(4)");
 			if (hideAmountLeft == 0) {
 				currentState = HIDESTATES.ReturnToGE;
@@ -519,6 +559,7 @@ public class BlueDragonhides extends Script{
 				bank.open();
 				rsleep(500);
 			}
+			bank.depositAll();
 			for (int i = 1; i <= 5; i++)
 				bank.withdrawAll("Ring of wealth (" + i + ")");
 			bank.close();
@@ -582,6 +623,9 @@ public class BlueDragonhides extends Script{
 			currentState = HIDESTATES.TradeWithTanner;
 			break;
 		case TradeWithTanner:
+			openTannerDoor();
+			
+			
 			Entity ellis = npcs.closest("Ellis");
 			ellis.interact("Trade");
 			while(myPlayer().isAnimating() || myPlayer().isMoving())
@@ -607,9 +651,11 @@ public class BlueDragonhides extends Script{
 			{
 				currentState = HIDESTATES.TradeWithTanner;
 			}
+			openTannerDoor();
 				
 			break;
 		case ReturnToBank:
+			openTannerDoor();
 			walking.walk(new Position(3278,3179,0));
 			while(myPlayer().isAnimating() || myPlayer().isMoving())
 			{

@@ -38,15 +38,18 @@ public class BotStarter {
 		108,//108 is ryan mcgregor (Member),dueling nick, advertising addy dagger(p)
 		109,110,111,112,//buying wizard's mind bomb,
 		113,//113 is Ruck Crab, used for training my main
+		114,115,//these two are hand customized and botted tutorial island, hand walked to GE
 	};
 	public int[] justCreatedNeedsTutorialIsland = {
-			
+			122,123
 	};
 	public int[] doneTutorialIslandSittingAtLumby = {
-			114,115,116,
+			116,
 			117,118,119,120,
 	};
 	public int[] memberAccounts = {
+			116,//hand customized, botted tutorial island
+			//giving both of them 500k and seeing how far they get
 			121,//this one is tutorial island by hand so i can safely get 1m from burggy
 	};
 	public int[] availableAccounts = {
@@ -136,8 +139,17 @@ public class BotStarter {
 		public void actionPerformed(ActionEvent e) {
 			String name = scriptname.getText();
 			name = name.trim();
+			int max = -1;
+			if (!botNumberMax.getText().equals(""))
+				max = Integer.parseInt(botNumberMax.getText());
+			
+			if (max - Integer.parseInt(botNumberMin.getText()) > 3) {
+				jtf.append("dats more than 3 m8");
+				return;
+			}
+			
 			for (int i = Integer.parseInt(botNumberMin.getText());
-					i <= Integer.parseInt(botNumberMax.getText());
+					i <= max;
 					i++) {
 			if (banned(i))
 			{
