@@ -46,6 +46,9 @@ public class ChatCommander {
 			commandState = CommandStates.Done;
 			return;
 		}
+		if (text.startsWith("Bop")) {
+			script.worlds.hopToF2PWorld();
+		}
 		if (text.startsWith("Hop"))
 		{
 			stateData = text.split(" ")[1];
@@ -273,6 +276,7 @@ public class ChatCommander {
 			rsleep(100);
 			//interact, withdraw all
 			script.bank.withdrawAll(stateData);
+			rsleep(1500);
 			if (script.inventory.getItems()[0].nameContains(stateData))
 			{
 				commandState = CommandStates.SharedWaitingState;	

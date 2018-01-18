@@ -41,8 +41,7 @@ public class JoinCC  extends Script {
 	{
 		g.setPaint(Color.cyan);
 		g.drawString("name="+myPlayer().getName(),10,60);
-		g.drawString("Joining Clan Chat...",10,80);
-		g.drawString("state=" + joiner,10,100);
+		g.drawString("Joining Clan Chat..." + joiner,10,80);
 	}
 	
 	boolean first = true;
@@ -76,6 +75,10 @@ public class JoinCC  extends Script {
 			break;
 		case Done:
 			//do nothing. should be in CC
+			
+			//TODO: if friends is on private , then set it to all.
+			
+			
 			break;
 		
 		}

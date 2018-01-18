@@ -39,16 +39,38 @@ public class BotStarter {
 		109,110,111,112,//buying wizard's mind bomb,
 		113,//113 is Ruck Crab, used for training my main
 		114,115,//these two are hand customized and botted tutorial island, hand walked to GE
+		116,117,
+		124,125,
+		126,127,
+		128,129,
+	};
+	public int[] aboutToCreate = {
+			
 	};
 	public int[] justCreatedNeedsTutorialIsland = {
 			
+			147,
+			148,
+			149,150,151,152,
+			153,
+			154,155,156,
+			157,158,159,
+			160
 	};
 	public int[] doneTutorialIslandSittingAtLumby = {
-			116,
-			122,123
+			
+			130,131,132,133,
+			134,135,
+			136,137,138,139,140,
+			141,
+			142,
+			143,144,145,146,
+			//116,
+			//122,123
 	};
 	public int[] kebabBots = {
-			117,118,119,120,
+			118,119,120,
+			
 	};
 	public int[] memberAccounts = {
 			116,//116oscx: hand customized, botted tutorial island
@@ -69,7 +91,7 @@ public class BotStarter {
 			121,
 			122,123
 			/*
-			122,123,124,
+			124,
 			125,126,127,128,
 			//working on these . . . 
 			129,130,131,132,
@@ -102,6 +124,12 @@ public class BotStarter {
 	}
 	public BotStarter() {
 		
+	}
+	private void rsleep(long t)
+	{
+		try{
+			Thread.sleep(t);
+		}catch(Exception e){}
 	}
 	private TreeMap<Integer, Process> processes = new TreeMap<>();
 	JFrame f;
@@ -147,14 +175,15 @@ public class BotStarter {
 			if (!botNumberMax.getText().equals(""))
 				max = Integer.parseInt(botNumberMax.getText());
 			
-			if (max - Integer.parseInt(botNumberMin.getText()) > 3) {
+			/*if (max - Integer.parseInt(botNumberMin.getText()) > 3) {
 				jtf.append("dats more than 3 m8");
 				return;
-			}
+			}*/
 			
 			for (int i = Integer.parseInt(botNumberMin.getText());
 					i <= max;
 					i++) {
+			
 			if (banned(i))
 			{
 				jtf.append("error: " + i + " is BANNED.\r\n");
@@ -178,8 +207,15 @@ public class BotStarter {
 			}
 			if (name.equalsIgnoreCase("tutorial"))
 			{
-				name = "591";//because SDN
-				options = "1;1;1;1;1";
+				
+				//if (new File("C:\\Users\\Yoloswag\\osbot\\data\\" + i + ".tutDone").exists()) {
+					name = "591";//because SDN
+					options = "1;1;1;1;1";
+						
+				//}
+				//else {
+				//	name = "TutorialIsland";
+				//}
 			}
 			if (name.equalsIgnoreCase("clan"))
 			{
@@ -226,6 +262,7 @@ public class BotStarter {
 			
 			}}.start();
 			}catch(Exception ee){ee.printStackTrace();} 
+			rsleep(5000);
 			}}
 		
 	});
@@ -234,6 +271,11 @@ public class BotStarter {
 	{
 		jtf.append(availableAccounts[i] + ",");
 	}
+	
+	jtf.append("\r\n");
+	jtf.append("tut: ");
+	for (int i = 0; i < justCreatedNeedsTutorialIsland.length; i++)
+		jtf.append(justCreatedNeedsTutorialIsland[i] + ",");
 	jtf.append("\r\n");
 	f.setLocation(0,100);
 	f.add(scriptname);

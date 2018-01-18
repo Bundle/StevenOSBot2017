@@ -11,12 +11,12 @@ typePassword() {
 SendInput,0134201342
 }
 addEmail() {
-	static starting := 122 - 1
+	static starting := 146 - 1
 	starting := starting + 1
 	SendInput,stevenfakeaccountemail%starting%@gmail.com
 	}
 addAccount() {
-	static names := ["spindle", "xpw2004", "jean1032", "ERenner", "dazzy200", "reznikdex", "FarMa", "john101"]
+	static names := ["athwart2558", "atlott12", "lancase", "fivewood", "mijory", "arcolamarengo", "dmiranda", "diz6gf"]
 	static nameIndex := 0
 	nameIndex := nameIndex + 1
 	SendInput, % names[nameIndex]

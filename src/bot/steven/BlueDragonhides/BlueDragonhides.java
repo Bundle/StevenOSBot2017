@@ -33,6 +33,7 @@ import org.osbot.rs07.script.ScriptManifest;
  * TODO: reeee the price of green is hitting giga low... will need to imlpement other colors as well.
  * (put the 4 colors on the UI with their 4 prices and a PRICECHECK button)
  * TODO: what do i do when they dont buy out instantly? reeeeeeeeee
+ * TODO: if hides are not buying instantly, then try another hide color.
  */
 
 @ScriptManifest(author = "Steven Ventura", info = "Tan Green Dragonhides", logo = "", name = "GreenDragonhides", version = 0)
@@ -494,17 +495,22 @@ public class BlueDragonhides extends Script{
 				
 				break;
 			case WalkToDesertBank:
-				
+				if (myPlayer().getX() == 3283 && myPlayer().getY() == 3166) {
+					
+				}
 //open the door if it is closed
+				else
+				{
 				WallObject door = (WallObject) objects.closest("Large door");
 				
 				if (door != null  && door.getOrientation() == 3)//closed is 3 on both parts of big door
 					door.interact("Open");
+				
 				rsleep(2000);
 				if (door != null  && door.getOrientation() == 3)
 					break;//reeeeeeeeeeee. probably relog idk this could mean someones shutting the door?
 					//usually it just means it lagged and hasnt closed the door yet
-				
+				}
 				walking.walk(new Position(3292,3170,0));
 				rsleep(1000);
 				waitForMovements();
