@@ -2,9 +2,7 @@ package bot.steven.JoinCC;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.util.ArrayList;
 
-import org.osbot.rs07.api.ui.RS2Widget;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 
@@ -77,7 +75,12 @@ public class JoinCC  extends Script {
 			//do nothing. should be in CC
 			
 			//TODO: if friends is on private , then set it to all.
-			
+			try{
+			if (widgets.get(162,17).getMessage().equals("<col=ffff00>Friends")) {
+				widgets.get(162,17).interact("<col=ffff00>Private:</col> Show all");
+			}
+				
+			}catch(Exception e){e.printStackTrace();}
 			
 			break;
 		
