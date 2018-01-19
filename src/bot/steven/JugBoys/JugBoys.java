@@ -5,9 +5,12 @@ import java.awt.Graphics2D;
 import java.io.File;
 import java.io.PrintWriter;
 
+import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
+
+import bot.steven.ChatCommands.ChatCommander.CommandStates;
 
 /*
  * JugBoys:
@@ -42,11 +45,17 @@ public class JugBoys extends Script{
 	};
 	FILLJUGS fillJugState;
 	enum GIVEFULLJUGS {
-		
+		NotingItems,
+		SendTradeRequest,
+		WaitForTradeToOpen,
+		Done,
 	};
 	GIVEFULLJUGS giveFullJugsState;
 	enum TAKEEMPTYJUGS {
-		
+		WaitForTradeToOpen,
+		Done,
+		SendTradeRequest,
+		EmptyBags
 	};
 	TAKEEMPTYJUGS takeEmptyJugsState;
 	
@@ -98,6 +107,8 @@ final boolean LEFTCLICK = false, RIGHTCLICK = true;
 		
 	}
 	
+	String stateData1, stateData2;
+	
 	public void onMessage(Message message)
 	{
 		final int CLANCHAT = 9, WHISPER = 3;
@@ -106,7 +117,9 @@ final boolean LEFTCLICK = false, RIGHTCLICK = true;
 		if (message.getTypeId() == CLANCHAT 
 				|| message.getTypeId() == WHISPER) {
 			
-			String phrase = text.split(" ")[0];
+			
+			String[] split = text.split(" ");
+			String phrase = split[0];
 			
 			if (phrase == null)
 				return;
@@ -125,6 +138,8 @@ final boolean LEFTCLICK = false, RIGHTCLICK = true;
 				break;
 				
 			case "Take":
+				stateData1 = message.getUsername();//name
+				//stateData2 is unused
 				master = MASTERSTATES.TakeEmptyJugs;
 				break;
 				
@@ -231,10 +246,10 @@ public void onStart() {
 			
 			break;
 		case GiveFullJugs:
-			
+			stateMachineGiveFullJugs();
 			break;
 		case TakeEmptyJugs:
-			
+			stateMachineTakeEmptyJugs();
 			break;
 		case JoinCC:
 			stateMachineJoinCCAndFriendsON();
@@ -249,6 +264,155 @@ public void onStart() {
 		return 150;
 	}
 	
+	private void stateMachineGiveFullJugs() {
+	
+	switch (giveFullJugsState) {
+	case Done:
+		//go to idle
+		master = MASTERSTATES.Idle;
+		break;
+	case SendTradeRequest:
+		Entity tradeboy = players.closest(stateData1);
+		if (tradeboy != null)
+			{
+			tradeboy.interact("Trade with");
+			rsleep(500);
+			//TODO: check for message "interact with" to verify trade was sent
+			giveFullJugsState = GIVEFULLJUGS.WaitForTradeToOpen;
+			}
+		//else keep trying
+		
+		break;
+	case WaitForTradeToOpen:
+		//wait for widget
+		//give him the item
+		if  (WaitForWidget(335,25)) {
+		inventory.interact("Offer-All", "Jug of water");
+		//press accept
+		click(264,180);
+		//wait for him to accept
+		if (WaitForWidget(334,13)) {
+		click(215,303);
+		//WARNING: possible for bot to stall here ?
+		WaitForWidgetToDisappear(334,13);
+		//success so go back to farming
+		giveFullJugsState = GIVEFULLJUGS.Done;
+		}
+		}
+		//try again. this if statement is needed because "concurrency" and sheeit
+		if (giveFullJugsState != GIVEFULLJUGS.Done){ 
+		giveFullJugsState = GIVEFULLJUGS.WaitForTradeToOpen;
+		}
+		break;
+	
+	
+	
+	case NotingItems:
+		//open bank
+		while(!bank.isOpen()) {
+			try{
+				bank.open();
+				}catch(InterruptedException e) {
+					e.printStackTrace();
+					break;
+				}
+			rsleep(400);
+		}
+		
+		rsleep(100);
+		//deposit all items
+		
+		//hit it twice cos god damn it
+		bank.depositAll();
+		bank.depositAll();
+
+		rsleep(100);
+		//hit withdraw-as-note
+		
+		click(288,318);
+		rsleep(100);
+		//interact, withdraw all
+		bank.withdrawAll("Jug of water");
+		rsleep(1500);
+		if (inventory.getItems()[0].nameContains("Jug of water"))
+		{
+			giveFullJugsState = GIVEFULLJUGS.SendTradeRequest;
+		}
+		else
+			//try again
+			giveFullJugsState = GIVEFULLJUGS.NotingItems;
+		break;
+		}
+		
+		
+	
+	
+	}
+	
+	
+	private void stateMachineTakeEmptyJugs() {
+		
+		
+		switch(takeEmptyJugsState) {
+		case Done:
+			//go to idle
+			master = MASTERSTATES.Idle;
+			break;
+		//empty his bags first so he has room for trading
+		case EmptyBags:
+			//TODO: does this actually reach the bank always?
+			while (!bank.isOpen()) {
+				
+				try{
+				bank.open();
+				rsleep(400);
+				}catch(Exception e){e.printStackTrace();}
+				
+			}
+			bank.depositAll();
+			rsleep(800);
+			bank.close();
+			takeEmptyJugsState = TAKEEMPTYJUGS.SendTradeRequest; 
+			break;
+		case SendTradeRequest:
+			Entity tradeboy = players.closest(stateData1);
+			if (tradeboy != null)
+				{
+				tradeboy.interact("Trade with");
+				rsleep(500);
+				//TODO: check for message "interact with" to verify trade was sent
+				takeEmptyJugsState = TAKEEMPTYJUGS.WaitForTradeToOpen;
+				}
+			//else keep trying
+			
+			break;
+		case WaitForTradeToOpen:
+			//wait for widget
+			//take the items from him
+			if  (WaitForWidget(335,25)) {
+			//offer nothing
+			//press accept
+			click(264,180);
+			//wait for him to accept
+			if (WaitForWidget(334,13)) {
+			click(215,303);
+			//WARNING: possible for bot to stall here ?
+			WaitForWidgetToDisappear(334,13);
+			//success so go back to farming
+			takeEmptyJugsState = TAKEEMPTYJUGS.Done;
+			}
+			}
+			//try again. this if statement is needed because concurrency and sheeit
+			if (takeEmptyJugsState != TAKEEMPTYJUGS.Done){ 
+			takeEmptyJugsState = TAKEEMPTYJUGS.WaitForTradeToOpen;
+			}
+			break;
+		
+		
+		}
+		
+		
+	}
 	
 	private void stateMachineJoinCCAndFriendsON() {
 		switch (joiner) {
@@ -276,7 +440,7 @@ public void onStart() {
 		case Done:
 			//do nothing. should be in CC
 			
-			//TODO: if friends is on private , then set it to all.
+			//actually , if friends is on private , then set it to all.
 			try{
 			if (widgets.get(162,17).getMessage().equals("<col=ffff00>Friends")) {
 				widgets.get(162,17).interact("<col=ffff00>Private:</col> Show all");
@@ -288,6 +452,40 @@ public void onStart() {
 		
 		}
 		
+	}
+	
+	private boolean WaitForWidgetToDisappear (int arg1, int arg2)
+	{
+		int loops = 0;
+		while (widgets.get(arg1,arg2) != null || widgets.get(arg1,arg2).isVisible()) {
+			loops++;
+			if (loops > 80)
+				return false;
+			rsleep(100);
+		}
+		return true;
+	}
+	private boolean WaitForWidget (int arg1, int arg2)
+	{
+		int loops = 0;
+		while (widgets.get(arg1,arg2) == null || !widgets.get(arg1,arg2).isVisible()) {
+			loops++;
+			if (loops > 80)
+				return false;
+			rsleep(100);
+		}
+		return true;
+	}
+	private boolean WaitForWidget (int arg1, int arg2, int arg3)
+	{
+		int loops = 0;
+		while (widgets.get(arg1,arg2,arg3) == null || !widgets.get(arg1,arg2,arg3).isVisible()) {
+			loops++;
+			if (loops > 80)
+				return false;
+			rsleep(100);
+		}
+		return true;
 	}
 	
 	
