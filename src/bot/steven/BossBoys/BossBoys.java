@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Date;
 import java.util.TreeMap;
 
 import org.osbot.rs07.api.ui.Message;
@@ -20,9 +21,26 @@ public class BossBoys extends Script{
 	enum MASTERSTATES {
 		Idle,
 		Travelling,
-		
+		Distributing,
+		Collecting,
 		
 	};
+	
+	//TODO: in the UI, prevent him from distributing and collecting if he is not in falador.
+	enum DISTRIBUTING {
+		PopulatingCustomerArray,
+		 SendingTradeRequestToEach,
+		 Done
+	}
+	DISTRIBUTING distributingState;
+	
+	enum COLLECTING {
+		PopulatingCustomerArray,
+		 SendingTradeRequestToEach,
+		 Done
+	}
+	
+	COLLECTING collectingState;
 	
 	MASTERSTATES master = MASTERSTATES.Idle;
 	
@@ -85,7 +103,8 @@ public class BossBoys extends Script{
 			File f = new File(getDirectoryData() + getParameters() + ".bossData");
 			
 			PrintWriter p = new PrintWriter(f);
-			
+			p.println(""+new Date());
+			//DateFormat.parse( );
 			p.println(""+myPlayer().getX());
 			p.println(""+myPlayer().getY());
 			p.println(""+numEmptyJugs);
@@ -135,9 +154,15 @@ public class BossBoys extends Script{
 		g.setPaint(Color.ORANGE);
 		
 		switch (master) {
-		case Idle:
-		g.drawString("JugBoy=" + master,10,60);
-		break;
+		case Collecting:
+			g.drawString("JugBoy=" + collectingState,10,60);
+			break;
+		case Distributing:
+			g.drawString("JugBoy=" + distributingState,10,60);
+			break;
+		default:
+			g.drawString("JugBoy=" + master,10,60);
+			break;
 		
 		}
 		
@@ -163,13 +188,58 @@ public class BossBoys extends Script{
 			//TODO: travel to next node until done
 			//TODO: output the done signal
 			break;
-		
+		case Distributing:
+			stateMachineDistributing();
+			break;
+		case Collecting:
+			stateMachineCollecting();
+			break;
 		
 		
 		}
 		
 		
 		return 150;
+	}
+	
+	private void stateMachineCollecting() {
+		
+		switch(collectingState) {
+		case PopulatingCustomerArray:
+			//TODO: read from file to see who has stuff ready for me right now
+			playersToTakeJugsFrom = new TreeMap<>();
+			
+			break;
+		case SendingTradeRequestToEach:
+			//TODO: cycle through each person and go through with trade request
+			
+			
+			break;
+			case Done:
+				master = MASTERSTATES.Idle;
+			break;
+		}
+		
+		
+	}
+	private void stateMachineDistributing() {
+		switch(distributingState) {
+		case PopulatingCustomerArray:
+			playersToGiveJugsTo = new TreeMap<>();
+			//TODO: read from file to see who is available , and who needs jugs, and how many to give
+			
+			break;
+		case SendingTradeRequestToEach:
+			//TODO: cycle through each person and go through with trade request
+			
+			
+			break;
+		case Done:
+				master = MASTERSTATES.Idle;
+			break;
+		}
+		
+		
 	}
 	
 	

@@ -4,13 +4,12 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Date;
 
 import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
-
-import bot.steven.ChatCommands.ChatCommander.CommandStates;
 
 /*
  * JugBoys:
@@ -95,7 +94,7 @@ final boolean LEFTCLICK = false, RIGHTCLICK = true;
 			File f = new File(getDirectoryData() + getParameters() + ".jugData");
 			
 			PrintWriter p = new PrintWriter(f);
-			
+			p.println(""+new Date());
 			p.println(""+myPlayer().getX());
 			p.println(""+myPlayer().getY());
 			p.println(""+numEmptyJugs);
@@ -134,6 +133,8 @@ final boolean LEFTCLICK = false, RIGHTCLICK = true;
 				break;
 				
 			case "Give":
+				stateData1 = message.getUsername();
+				//stateData2 is unused
 				master = MASTERSTATES.GiveFullJugs;
 				break;
 				
