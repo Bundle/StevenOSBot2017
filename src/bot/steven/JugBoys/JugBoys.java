@@ -24,13 +24,60 @@ public class JugBoys extends Script{
 	
 	enum MASTERSTATES {
 		Idle,
+		JoinCC,
 		TravelToFalador,
 		FillJugs,
 		GiveFullJugs,
 		TakeEmptyJugs
 	};
 	
-	MASTERSTATES master = MASTERSTATES.Idle;
+	MASTERSTATES master;
+	
+	enum TRAVELTOFALADOR {
+		
+	};
+	TRAVELTOFALADOR travelToFaladorState;
+	enum FILLJUGS {
+		
+	};
+	FILLJUGS fillJugState;
+	enum GIVEFULLJUGS {
+		
+	};
+	GIVEFULLJUGS giveFullJugsState;
+	enum TAKEEMPTYJUGS {
+		
+	};
+	TAKEEMPTYJUGS takeEmptyJugsState;
+	
+	
+	//this is taken from my JoinCC 1/18/2018
+	enum JOINSTATES {
+		clickCC,
+		clickJoin,
+		enterName,
+		Done
+	};
+	JOINSTATES joiner;
+	
+final boolean LEFTCLICK = false, RIGHTCLICK = true;
+	
+	private void rsleep(long millis)
+	{
+		try{
+			Thread.sleep(millis);
+		}catch(Exception e){};
+	}
+	private void click(int x, int y)
+	{
+		mouse.move(x,y);
+		mouse.click(LEFTCLICK);
+	}
+	private void rightclick(int x, int y)
+	{
+		mouse.move(x,y);
+		mouse.click(RIGHTCLICK);
+	}
 	
 	private void printPlayerDataToFile() {
 		//TODO: location,numEmptyJugs,numFullJugs
@@ -66,19 +113,19 @@ public class JugBoys extends Script{
 			
 			switch (phrase) {
 			case "Falador":
-				
+				master = MASTERSTATES.TravelToFalador;
 				break;
 				
 			case "Fill":
-				
+				master = MASTERSTATES.FillJugs;
 				break;
 				
 			case "Give":
-				
+				master = MASTERSTATES.GiveFullJugs;
 				break;
 				
 			case "Take":
-				
+				master = MASTERSTATES.TakeEmptyJugs;
 				break;
 				
 			
@@ -102,28 +149,67 @@ public class JugBoys extends Script{
 		g.setPaint(Color.ORANGE);
 		
 		switch (master) {
-		case Idle:
-		g.drawString("JugBoy=" + master,10,60);
-		break;
+		
 		case TravelToFalador:
-			
+			g.drawString("JugBoy=" + travelToFaladorState,10,60);
 			break;
 		case FillJugs:
-			
+			g.drawString("JugBoy=" + fillJugState,10,60);
 			break;
 			
 		case GiveFullJugs:
-			
+			g.drawString("JugBoy=" + giveFullJugsState,10,60);
 			break;
 		case TakeEmptyJugs:
-			
-			break;
+			g.drawString("JugBoy=" + takeEmptyJugsState,10,60);
+		break;
+		
+		default:
+			g.drawString("JugBoy master=" + master,10,60); 
+		break;
 		}
 		
 		g.drawString(""+numEmptyJugs,10,80);
 		g.drawString(""+numFullJugs,10,100);
 		
 	}
+	
+class TravellingToFalador {
+		
+		TravelNode currentDestination;
+		
+		class TravelNode {
+			TravelNode nextTowardsFalador = null;
+			TravelNode previous = null;
+			private int x, y;
+			
+			public TravelNode(int x, int y) {
+				this.x=x;this.y=y;
+				
+			}
+		}
+		
+		//TODO: put things in path thing manually. maybe use arraylist idk whatever works for easiest inputing w helper function
+		public TravellingToFalador() {
+			
+			defineTree();
+		}
+		private void defineTree() {
+			//TODO: populate the tree so its usable
+			
+		}
+		
+		
+	}
+	@Override
+public void onStart() {
+		master = MASTERSTATES.JoinCC;
+		joiner = JOINSTATES.clickCC;
+	}
+
+
+	TravellingToFalador traveller = null;
+	
 	int numEmptyJugs=-1,numFullJugs=-1;
 	private long CT=System.currentTimeMillis(),LT=System.currentTimeMillis();
 	@Override
@@ -138,6 +224,22 @@ public class JugBoys extends Script{
 		case Idle:
 			//do nothing
 			break;
+		case TravelToFalador:
+			
+			break;
+		case FillJugs:
+			
+			break;
+		case GiveFullJugs:
+			
+			break;
+		case TakeEmptyJugs:
+			
+			break;
+		case JoinCC:
+			stateMachineJoinCCAndFriendsON();
+			break;
+			
 		
 		
 		
@@ -148,7 +250,45 @@ public class JugBoys extends Script{
 	}
 	
 	
-	
+	private void stateMachineJoinCCAndFriendsON() {
+		switch (joiner) {
+		case clickCC:
+			click(541,482);
+			joiner = JOINSTATES.clickJoin;
+			break;
+		case clickJoin:
+			String text = widgets.get(7,17).getMessage();
+			log("text is " + text);
+			if (text.equals("Join Chat"))
+			{
+			
+			
+			click(590,445);
+			joiner = JOINSTATES.enterName;
+			}
+			else
+				joiner = JOINSTATES.Done;
+			break;
+		case enterName:
+			keyboard.typeString("Pinball Boy");
+			joiner = JOINSTATES.Done;
+			break;
+		case Done:
+			//do nothing. should be in CC
+			
+			//TODO: if friends is on private , then set it to all.
+			try{
+			if (widgets.get(162,17).getMessage().equals("<col=ffff00>Friends")) {
+				widgets.get(162,17).interact("<col=ffff00>Private:</col> Show all");
+			}
+				
+			}catch(Exception e){e.printStackTrace();}
+			
+			break;
+		
+		}
+		
+	}
 	
 	
 }
