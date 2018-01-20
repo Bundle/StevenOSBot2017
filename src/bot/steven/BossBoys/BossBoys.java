@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.PrintWriter;
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.Stack;
@@ -15,8 +16,6 @@ import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
-
-import bot.steven.ChatCommands.ChatCommander.CommandStates;
 
 /*
  * BossBoys:
@@ -55,6 +54,49 @@ public class BossBoys extends Script{
 		
 		TravelNode currentDestination;
 		
+		int[] xymashup = {3164, 3485,
+				3164, 3474,
+				3165, 3465,
+				3162, 3458,
+				3159, 3452,
+				3147, 3442,
+				3139, 3437,
+				3134, 3426,
+				3128, 3420,
+				3121, 3417,
+				3115, 3419,
+				3108, 3420,
+				3104, 3420,
+				3096, 3420,
+				3089, 3420,
+				3083, 3419,
+				3074, 3420,
+				3066, 3418,
+				3058, 3414,
+				3054, 3412,
+				3046, 3412,
+				3042, 3414,
+				3037, 3420,
+				3031, 3424,
+				3029, 3425,
+				3023, 3425,
+				3019, 3425,
+				3014, 3427,
+				3004, 3429,
+				3000, 3429,
+				2992, 3429,
+				2988, 3424,
+				2985, 3412,
+				2977, 3403,
+				2971, 3397,
+				2967, 3395,
+				2967, 3389,
+				2963, 3383,
+				2962, 3382,
+				2958, 3382,
+				2952, 3377,
+				2949, 3374 };
+		
 		class TravelNode {
 			TravelNode towardsFalador=null, towardsGE=null;
 			private int x, y;
@@ -72,6 +114,21 @@ public class BossBoys extends Script{
 		}
 		private void defineTree() {
 			//TODO: populate the tree so its usable
+			ArrayList<TravelNode> temp = new ArrayList<>();
+			//0 is grand exchange. end is falador west bank.
+			for (int i = 0; i < xymashup.length/2; i+=2) {
+				temp.add(new TravelNode(xymashup[i],xymashup[i+1]));
+			}
+			
+			temp.get(0).towardsFalador = temp.get(1);
+			for (int i = 1; i < temp.size()-1; i++) {
+				temp.get(i).towardsFalador = temp.get(i+1);
+				temp.get(i).towardsGE = temp.get(i-1);
+			}
+			temp.get(temp.size()-1).towardsGE = temp.get(temp.size()-2);
+			
+			
+			
 			
 		}
 		
@@ -132,11 +189,12 @@ public class BossBoys extends Script{
 		String text = message.getMessage();
 		
 		//the game messages
-		if (text.contains("wishes to trade with")) {
+		if (text.contains("wishes to trade")) {
 			String name = text.split(" ")[0];
 			//dont allow duplicates
 			if (!tradeboys.contains(name)) {
-				if ()
+				if (playerboys.containsKey(name))
+					tradeboys.push(name);
 				
 				
 			}
@@ -407,7 +465,7 @@ public class BossBoys extends Script{
 			distributingState = DISTRIBUTING.SendingTradeRequestToEach;
 			break;
 		case SendingTradeRequestToEach:
-			//TODO: cycle through each person and go through with trade request
+			//cycle through each person and go through with trade request
 			if (!tradeboys.isEmpty()) {
 				if (currentTradeBoy == null)
 					currentTradeBoy = tradeboys.pop();
