@@ -95,6 +95,7 @@ final boolean LEFTCLICK = false, RIGHTCLICK = true;
 			
 			PrintWriter p = new PrintWriter(f);
 			p.println(""+new Date());
+			p.println(myPlayer().getName());
 			p.println(""+myPlayer().getX());
 			p.println(""+myPlayer().getY());
 			p.println(""+numEmptyJugs);

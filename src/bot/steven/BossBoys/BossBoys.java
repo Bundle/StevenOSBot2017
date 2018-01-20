@@ -3,13 +3,20 @@ package bot.steven.BossBoys;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.PrintWriter;
+import java.text.DateFormat;
 import java.util.Date;
+import java.util.Scanner;
+import java.util.Stack;
 import java.util.TreeMap;
 
+import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
+
+import bot.steven.ChatCommands.ChatCommander.CommandStates;
 
 /*
  * BossBoys:
@@ -73,8 +80,10 @@ public class BossBoys extends Script{
 	
 	Travelling traveller = null;
 	
-	TreeMap<String,Integer> playersToGiveJugsTo;
-	TreeMap<String,String> playersToTakeJugsFrom;
+	TreeMap<String,JugPlayer> playerboys;
+	
+	
+	Stack<String> tradeboys;
 	
 	private void travelToCity(CITY city) {
 		traveller = new Travelling(city);
@@ -104,6 +113,7 @@ public class BossBoys extends Script{
 			
 			PrintWriter p = new PrintWriter(f);
 			p.println(""+new Date());
+			p.println(myPlayer().getName());
 			//DateFormat.parse( );
 			p.println(""+myPlayer().getX());
 			p.println(""+myPlayer().getY());
@@ -121,6 +131,19 @@ public class BossBoys extends Script{
 		final int CLANCHAT = 9, WHISPER = 3;
 		String text = message.getMessage();
 		
+		//the game messages
+		if (text.contains("wishes to trade with")) {
+			String name = text.split(" ")[0];
+			//dont allow duplicates
+			if (!tradeboys.contains(name)) {
+				if ()
+				
+				
+			}
+			
+		}
+		
+		//the whisper commands
 		if (message.getTypeId() == CLANCHAT 
 				|| message.getTypeId() == WHISPER) {
 			
@@ -202,20 +225,169 @@ public class BossBoys extends Script{
 		return 150;
 	}
 	
+	class JugPlayer {
+		
+		public JugPlayer(File f) {
+			try{
+			Scanner scan = new Scanner(f);
+			this.postTime = DateFormat.getDateInstance().parse(scan.nextLine());
+			this.name = scan.nextLine();
+			this.x = Integer.parseInt(scan.nextLine());
+			this.y = Integer.parseInt(scan.nextLine());
+			this.numEmptyJugs = Integer.parseInt(scan.nextLine());
+			this.numFullJugs = Integer.parseInt(scan.nextLine());
+			scan.close();
+			donetrading = false;
+			}catch(Exception e) {e.printStackTrace();}
+		}
+		public void setTradeWith(boolean trademe) {
+			
+		}
+		boolean donetrading = false;
+		String name;
+		Date postTime;
+		int x,y;
+		int numEmptyJugs;
+		int numFullJugs;
+		
+	}
+	
+	private void populateboys() {
+		//TODO: add criteria, like they only trade if they have above the threshold of items.
+		try{
+			File dir = new File(".");
+			File [] files = dir.listFiles(new FilenameFilter() {
+			    @Override
+			    public boolean accept(File dir, String name) {
+			        return name.endsWith(".jugData");
+			    }
+			});
+
+			for (File f : files) {
+			    JugPlayer p = new JugPlayer(f);
+			    if (Math.abs(new Date().getTime() - p.postTime.getTime() )
+			    		< 50*1000) {
+			    	log("detected file," + f.getName() + ",created within the last 50 seconds.");
+			    	playerboys.put(p.name, p);
+			    }
+			}
+		}catch(Exception e){e.printStackTrace();}
+
+	}
+	private boolean WaitForWidgetToDisappear (int arg1, int arg2)
+	{
+		int loops = 0;
+		while (widgets.get(arg1,arg2) != null || widgets.get(arg1,arg2).isVisible()) {
+			loops++;
+			if (loops > 80)
+				return false;
+			rsleep(100);
+		}
+		return true;
+	}
+	private boolean WaitForWidget (int arg1, int arg2)
+	{
+		int loops = 0;
+		while (widgets.get(arg1,arg2) == null || !widgets.get(arg1,arg2).isVisible()) {
+			loops++;
+			if (loops > 80)
+				return false;
+			rsleep(100);
+		}
+		return true;
+	}
+	private boolean WaitForWidget (int arg1, int arg2, int arg3)
+	{
+		int loops = 0;
+		while (widgets.get(arg1,arg2,arg3) == null || !widgets.get(arg1,arg2,arg3).isVisible()) {
+			loops++;
+			if (loops > 80)
+				return false;
+			rsleep(100);
+		}
+		return true;
+	}
+	private void rsleep(long millis)
+	{
+		try{
+			Thread.sleep(millis);
+		}catch(Exception e){};
+	}
+	final boolean LEFTCLICK = false, RIGHTCLICK = true;
+	
+	
+	private void click(int x, int y)
+	{
+		mouse.move(x,y);
+		mouse.click(LEFTCLICK);
+	}
+	private void rightclick(int x, int y)
+	{
+		mouse.move(x,y);
+		mouse.click(RIGHTCLICK);
+	}
+	
+	String currentTradeBoy = null;
 	private void stateMachineCollecting() {
 		
 		switch(collectingState) {
 		case PopulatingCustomerArray:
 			//TODO: read from file to see who has stuff ready for me right now
-			playersToTakeJugsFrom = new TreeMap<>();
-			
+			playerboys = new TreeMap<>();
+			tradeboys = new Stack<>();//this stack is populated in the onMessage() thing
+			currentTradeBoy = null;
+			populateboys();
+			collectingState = COLLECTING.SendingTradeRequestToEach;
 			break;
 		case SendingTradeRequestToEach:
 			//TODO: cycle through each person and go through with trade request
+			if (!tradeboys.isEmpty()) {
+				if (currentTradeBoy == null)
+					currentTradeBoy = tradeboys.pop();
+			}
+			else
+			{
+				collectingState = COLLECTING.Done;
+				break;
+			}
+			
+			//TODO: put this new version of widget handling in jugboys
+			Entity tradeboy = players.closest(currentTradeBoy);
+			if (tradeboy != null)
+				{
+					if ( (widgets.get(335,25) == null || widgets.get(335,25).isVisible() == false)
+							&& 
+						 (widgets.get(334,13) == null || widgets.get(334,13).isVisible() == false)) {
+				tradeboy.interact("Trade with");
+				rsleep(1000);
+					}
+				
+				//trade screen 1 widget is 335,25
+					//trade screen 2 widget is 334,13
+				if  ((widgets.get(334,13) != null && widgets.get(334,13).isVisible())
+						|| WaitForWidget(335,25)) {
+					//wait a second for him to put the goods up
+					rsleep(2000);
+					//press accept
+					click(264,180);
+					//wait for him to accept
+					if (WaitForWidget(334,13)) {
+					//press accept again
+					click(215,303);
+					//successful trade!
+					currentTradeBoy = null;
+					}
+				}
+			}
+			
+			
+			
 			
 			
 			break;
-			case Done:
+			
+		
+		case Done:
 				master = MASTERSTATES.Idle;
 			break;
 		}
@@ -223,15 +395,58 @@ public class BossBoys extends Script{
 		
 	}
 	private void stateMachineDistributing() {
+		//TODO: add the state where i put the jugs in my inventory and then bring them to falador.
 		switch(distributingState) {
 		case PopulatingCustomerArray:
-			playersToGiveJugsTo = new TreeMap<>();
-			//TODO: read from file to see who is available , and who needs jugs, and how many to give
+			playerboys = new TreeMap<>();
+			tradeboys = new Stack<>();//this stack is populated in the onMessage() thing
+			currentTradeBoy = null;
+			populateboys();
 			
+			//TODO: read from file to see who is available , and who needs jugs, and how many to give
+			distributingState = DISTRIBUTING.SendingTradeRequestToEach;
 			break;
 		case SendingTradeRequestToEach:
 			//TODO: cycle through each person and go through with trade request
+			if (!tradeboys.isEmpty()) {
+				if (currentTradeBoy == null)
+					currentTradeBoy = tradeboys.pop();
+			}
+			else
+			{
+				distributingState = DISTRIBUTING.Done;
+				break;
+			}
 			
+			//TODO: put this new version of widget handling in jugboys
+			Entity tradeboy = players.closest(currentTradeBoy);
+			if (tradeboy != null)
+				{
+					//this if statement is here to skip ahead if he is already in another window
+					if ( (widgets.get(335,25) == null || widgets.get(335,25).isVisible() == false)
+							&& 
+						 (widgets.get(334,13) == null || widgets.get(334,13).isVisible() == false)) {
+				tradeboy.interact("Trade with");
+				rsleep(1000);
+					}
+				
+				//trade screen 1 widget is 335,25
+					//trade screen 2 widget is 334,13
+				if  ((widgets.get(334,13) != null && widgets.get(334,13).isVisible())
+						|| WaitForWidget(335,25)) {
+					//offer my item
+					inventory.interact("Offer-All", "Jug");
+					//press accept
+					click(264,180);
+					//wait for him to accept
+					if (WaitForWidget(334,13)) {
+					//press accept again
+					click(215,303);
+					//successful trade!
+					currentTradeBoy = null;
+					}
+				}
+			}
 			
 			break;
 		case Done:
