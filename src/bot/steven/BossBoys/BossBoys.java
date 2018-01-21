@@ -12,6 +12,7 @@ import java.util.Scanner;
 import java.util.Stack;
 import java.util.TreeMap;
 
+import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
@@ -53,6 +54,10 @@ public class BossBoys extends Script{
 	class Travelling {
 		
 		TravelNode currentDestination;
+		TravelNode headGE;
+		TravelNode tailFalador;
+		
+		boolean directionTowardsFalador;
 		
 		int[] xymashup = {3164, 3485,
 				3164, 3474,
@@ -108,13 +113,14 @@ public class BossBoys extends Script{
 		}
 		CITY destination;
 		//TODO: put things in path thing manually. maybe use arraylist idk whatever works for easiest inputing w helper function
-		public Travelling(CITY destination) {
-			this.destination=destination;
+		public Travelling(boolean directionTowardsFalador) {
+			this.directionTowardsFalador = directionTowardsFalador;
 			defineTree();
 		}
+		public ArrayList<TravelNode> temp;
 		private void defineTree() {
 			//TODO: populate the tree so its usable
-			ArrayList<TravelNode> temp = new ArrayList<>();
+			temp = new ArrayList<>();
 			//0 is grand exchange. end is falador west bank.
 			for (int i = 0; i < xymashup.length/2; i+=2) {
 				temp.add(new TravelNode(xymashup[i],xymashup[i+1]));
@@ -143,7 +149,7 @@ public class BossBoys extends Script{
 	Stack<String> tradeboys;
 	
 	private void travelToCity(CITY city) {
-		traveller = new Travelling(city);
+		traveller = new Travelling(true);
 		master = MASTERSTATES.Travelling;
 		
 		
@@ -267,6 +273,7 @@ public class BossBoys extends Script{
 			break;
 		case Travelling:
 			//TODO: travel to next node until done
+			stateMachineTravelling();
 			//TODO: output the done signal
 			break;
 		case Distributing:
@@ -281,6 +288,92 @@ public class BossBoys extends Script{
 		
 		
 		return 150;
+	}
+	
+	enum TRAVELLING {
+		FindStart,
+		Travel,
+		Done
+	};
+	TRAVELLING travellingState;
+	
+	
+	private void stateMachineTravelling() {
+		switch (travellingState) {
+		
+		case FindStart:
+			double closestDistance = Double.MAX_VALUE;
+			int closestIndex = -1;
+			double x2 = myPlayer().getX();
+			double y2 = myPlayer().getY();
+			for (int i = 0; i < traveller.temp.size(); i++) {
+				double x1 = traveller.temp.get(i).x;
+				double y1 = traveller.temp.get(i).y;
+				
+				
+				
+				double distance = Math.sqrt(Math.pow(x2-x1,2) + Math.pow(y2-y1,2));
+				if (distance < closestDistance) {
+					closestDistance = distance;
+					closestIndex = i;
+				}
+				
+			}
+			
+			traveller.currentDestination = traveller.temp.get(closestIndex);
+			
+			travellingState = TRAVELLING.Travel;
+			break;
+		case Travel:
+			
+			waitForMovements();
+			if (traveller.directionTowardsFalador) {
+				if (traveller.currentDestination.towardsFalador == null) {
+					travellingState = TRAVELLING.Done;
+					break;
+				}
+				else
+				{
+					traveller.currentDestination = traveller.currentDestination.towardsFalador;
+				}
+				
+			}
+			else
+			{
+				if (traveller.currentDestination.towardsGE == null) {
+					travellingState = TRAVELLING.Done;
+					break;
+				}
+				else
+				{
+					traveller.currentDestination = traveller.currentDestination.towardsGE;
+				}
+				
+			}
+			
+			//now walk toward currentDestination
+			walking.walk(new Position(
+					traveller.currentDestination.x,
+					traveller.currentDestination.y,
+					0));
+			rsleep(800);
+			waitForMovements();
+			//TODO pull up next waypoint
+			
+			
+			break;
+			
+		case Done:
+			master = MASTERSTATES.Idle;
+			
+			
+			break;
+		
+		
+		}
+		
+		
+		
 	}
 	
 	class JugPlayer {
@@ -383,6 +476,13 @@ public class BossBoys extends Script{
 	{
 		mouse.move(x,y);
 		mouse.click(RIGHTCLICK);
+	}
+	private void waitForMovements()
+	{
+		while(myPlayer().isAnimating() || myPlayer().isMoving())
+		{
+			rsleep(500);
+		}
 	}
 	
 	String currentTradeBoy = null;
