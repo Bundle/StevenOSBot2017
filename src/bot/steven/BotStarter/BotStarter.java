@@ -39,7 +39,7 @@ public class BotStarter {
 		109,110,111,112,//buying wizard's mind bomb,
 		113,//113 is Ruck Crab, used for training my main
 		114,115,//these two are hand customized and botted tutorial island, hand walked to GE
-		116,117,
+		116,117,118,119,120,122,123,
 		124,125,
 		126,127,
 		128,129,
@@ -197,6 +197,12 @@ public class BotStarter {
 			String number = ""+ i;
 			//pass these parameters to KebabCarry so it knows which bots are actively running
 			String options = "" + i;
+			if (name.equalsIgnoreCase("jug")) {
+				name = "JugBoys";
+			}
+			if (name.equalsIgnoreCase("boss")) {
+				name = "BossBoys";
+			}
 			if (name.equalsIgnoreCase("log"))
 			{
 				name = "JustLogin";
@@ -285,7 +291,7 @@ public class BotStarter {
 	f.add(jtf);
 	
 	jtf.append("scriptName,bot#min,bot#max GOButton\n");
-	jtf.append("[tutorial][clan][kebab][desert][hide][bomb][log]\n");
+	jtf.append("[jug][boss][tutorial][clan][kebab][desert][hide][bomb][log]\n");
 	
 	
 	f.setFocusable(true);

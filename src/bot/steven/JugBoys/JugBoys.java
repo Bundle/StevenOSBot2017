@@ -4,8 +4,10 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Date;
 
+import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
@@ -35,12 +37,17 @@ public class JugBoys extends Script{
 	
 	MASTERSTATES master;
 	
-	enum TRAVELTOFALADOR {
-		
+	enum TRAVELLINGS {
+		FindStart,
+		Travel,
+		Done
 	};
-	TRAVELTOFALADOR travelToFaladorState;
+	TRAVELLINGS travellingState;
+	
 	enum FILLJUGS {
-		
+		Bank,
+		FillJugs,
+		Done
 	};
 	FILLJUGS fillJugState;
 	enum GIVEFULLJUGS {
@@ -81,10 +88,25 @@ final boolean LEFTCLICK = false, RIGHTCLICK = true;
 		mouse.move(x,y);
 		mouse.click(LEFTCLICK);
 	}
+	private void rclick(int x, int y)
+	{
+		int r1 = (int)(Math.random()*9);
+		int r2 = (int)(Math.random()*9);
+		int[] values = {-4,-3,-2,-1,0,1,2,3,4};
+		mouse.move(x+values[r1],y+values[r2]);
+		mouse.click(LEFTCLICK);
+	}
 	private void rightclick(int x, int y)
 	{
 		mouse.move(x,y);
 		mouse.click(RIGHTCLICK);
+	}
+	private void waitForMovements()
+	{
+		while(myPlayer().isAnimating() || myPlayer().isMoving())
+		{
+			rsleep(500);
+		}
 	}
 	
 	private void printPlayerDataToFile() {
@@ -124,24 +146,30 @@ final boolean LEFTCLICK = false, RIGHTCLICK = true;
 			if (phrase == null)
 				return;
 			
+			log("Phrase is " + phrase);
+			
 			switch (phrase) {
 			case "Falador":
 				master = MASTERSTATES.TravelToFalador;
+				travellingState = TRAVELLINGS.FindStart;
 				break;
 				
 			case "Fill":
 				master = MASTERSTATES.FillJugs;
+				fillJugState = FILLJUGS.Bank;
 				break;
 				
 			case "Give":
 				stateData1 = message.getUsername();
 				//stateData2 is unused
+				giveFullJugsState = GIVEFULLJUGS.NotingItems;
 				master = MASTERSTATES.GiveFullJugs;
 				break;
 				
 			case "Take":
 				stateData1 = message.getUsername();//name
 				//stateData2 is unused
+				takeEmptyJugsState = TAKEEMPTYJUGS.EmptyBags;
 				master = MASTERSTATES.TakeEmptyJugs;
 				break;
 				
@@ -168,7 +196,7 @@ final boolean LEFTCLICK = false, RIGHTCLICK = true;
 		switch (master) {
 		
 		case TravelToFalador:
-			g.drawString("JugBoy=" + travelToFaladorState,10,60);
+			g.drawString("JugBoy=" + travellingState,10,60);
 			break;
 		case FillJugs:
 			g.drawString("JugBoy=" + fillJugState,10,60);
@@ -225,7 +253,7 @@ public void onStart() {
 	}
 
 
-	TravellingToFalador traveller = null;
+	
 	
 	int numEmptyJugs=-1,numFullJugs=-1;
 	private long CT=System.currentTimeMillis(),LT=System.currentTimeMillis();
@@ -242,10 +270,12 @@ public void onStart() {
 			//do nothing
 			break;
 		case TravelToFalador:
-			
+			if (traveller == null)
+				traveller = new Travelling(true);
+			stateMachineTravelling();
 			break;
 		case FillJugs:
-			
+			stateMachineFillJugs();
 			break;
 		case GiveFullJugs:
 			stateMachineGiveFullJugs();
@@ -264,6 +294,193 @@ public void onStart() {
 		
 		
 		return 150;
+	}
+	private void stateMachineFillJugs() {
+		switch (fillJugState) {
+		case Bank:
+			while (!bank.isOpen()) {
+				try{
+				bank.open();
+				rsleep(1000);
+				}catch(Exception e){e.printStackTrace();}
+			}
+			
+			numEmptyJugs = (int)(inventory.getAmount("Jug") + bank.getAmount("Jug"));
+			numFullJugs = (int)(inventory.getAmount("Jug of water") + bank.getAmount("Jug of water"));
+			
+			if (numEmptyJugs == 0)
+			{
+				fillJugState = FILLJUGS.Done;
+				break;
+			}
+			//deposit all
+			rclick(443,313);
+			rsleep(300);
+			
+			bank.withdrawAll("Jug");
+			
+			bank.close();
+			
+			//check inventory rq
+			boolean good = true;
+			for (int i = 0; i < 28; i++) {
+				if (inventory.getItem(i) != null && !inventory.getItem(i).nameContains("Jug")) {
+					good = false;
+				}
+			}
+			if (!good) {
+				//no state change: bank again
+			}
+			else
+			{
+				fillJugState = FILLJUGS.FillJugs;
+			}
+			
+			break;
+			
+		case FillJugs:
+			if (!inventory.contains("Jug")) {
+				log("we didnt withdraw any jugs? maybe we are done?");
+				fillJugState = FILLJUGS.Bank;
+				break;
+			}
+			
+			
+			
+			//walk to spicket
+			walking.walk(new Position(2949,3382,0));
+			rsleep(800);
+			waitForMovements();
+			
+			Entity spicket = objects.closest("Waterpump");
+			if (spicket == null) {
+				log("ERROR: spicket is null? are you in fally?");
+				break;
+			}
+			inventory.getItem("Jug").interact("Use");
+			spicket.interact("Use");
+			rsleep(3000);//3000 lag-sleep to ensure the animation begins
+			//now wait until the jugs are full
+			
+			//can probably stall on this but oh well.
+			boolean doneFilling = false;
+			while (doneFilling == false) {
+				
+				doneFilling = true;
+				if (myPlayer().getAnimation() == 832)//filling jug animation
+					doneFilling = false;
+				rsleep(150);
+				if (myPlayer().getAnimation() == 832)//filling jug animation
+					doneFilling = false;
+				rsleep(150);
+				if (myPlayer().getAnimation() == 832)//filling jug animation
+					doneFilling = false;
+				rsleep(150);
+				if (myPlayer().getAnimation() == 832)//filling jug animation
+					doneFilling = false;
+				rsleep(150);
+				
+				//if these many cycles pass without the animation happening then stop
+				
+				
+				
+			}
+			
+			fillJugState = FILLJUGS.Bank;
+			
+			
+			
+			
+			break;	
+		case Done:
+			//TODO: he is done filling jugs, so register this.
+			master = MASTERSTATES.Idle;
+			break;
+			
+		
+		}
+		
+		
+	}
+	private void stateMachineTravelling() {
+		switch (travellingState) {
+		
+		case FindStart:
+			double closestDistance = Double.MAX_VALUE;
+			int closestIndex = -1;
+			double x2 = myPlayer().getX();
+			double y2 = myPlayer().getY();
+			for (int i = 0; i < traveller.temp.size(); i++) {
+				double x1 = traveller.temp.get(i).x;
+				double y1 = traveller.temp.get(i).y;
+				
+				
+				
+				double distance = Math.sqrt(Math.pow(x2-x1,2) + Math.pow(y2-y1,2));
+				if (distance < closestDistance) {
+					closestDistance = distance;
+					closestIndex = i;
+				}
+				
+			}
+			
+			traveller.currentDestination = traveller.temp.get(closestIndex);
+			
+			travellingState = TRAVELLINGS.Travel;
+			break;
+		case Travel:
+			
+			waitForMovements();
+			if (traveller.directionTowardsFalador) {
+				if (traveller.currentDestination.towardsFalador == null) {
+					travellingState = TRAVELLINGS.Done;
+					break;
+				}
+				else
+				{
+					traveller.currentDestination = traveller.currentDestination.towardsFalador;
+				}
+				
+			}
+			else
+			{
+				if (traveller.currentDestination.towardsGE == null) {
+					travellingState = TRAVELLINGS.Done;
+					break;
+				}
+				else
+				{
+					traveller.currentDestination = traveller.currentDestination.towardsGE;
+				}
+				
+			}
+			
+			//now walk toward currentDestination
+			walking.walk(new Position(
+					traveller.currentDestination.x,
+					traveller.currentDestination.y,
+					0));
+			rsleep(800);
+			waitForMovements();
+			
+			
+			break;
+			
+		case Done:
+			master = MASTERSTATES.Idle;
+			registerJustArrivedAtDestination();
+			
+			break;
+		
+		
+		}
+		
+		
+		
+	}
+	private void registerJustArrivedAtDestination() {
+		//TODO
+		
 	}
 	
 	private void stateMachineGiveFullJugs() {
@@ -367,7 +584,7 @@ public void onStart() {
 				
 				try{
 				bank.open();
-				rsleep(400);
+				rsleep(3000);
 				}catch(Exception e){e.printStackTrace();}
 				
 			}
@@ -389,19 +606,25 @@ public void onStart() {
 			
 			break;
 		case WaitForTradeToOpen:
+			//TODO: this currently assumes the trade was successfully sent.
+			//success so go back to farming
+			if (inventory.getItems()[0] != null)
+				takeEmptyJugsState = TAKEEMPTYJUGS.Done;
+			
 			//wait for widget
 			//take the items from him
-			if  (WaitForWidget(335,25)) {
+			if  (
+					(widgets.get(334,13) != null && widgets.get(334, 13).isVisible()) 
+					||
+					(WaitForWidget(335,25))
+					) {
 			//offer nothing
 			//press accept
 			click(264,180);
 			//wait for him to accept
 			if (WaitForWidget(334,13)) {
 			click(215,303);
-			//WARNING: possible for bot to stall here ?
-			WaitForWidgetToDisappear(334,13);
-			//success so go back to farming
-			takeEmptyJugsState = TAKEEMPTYJUGS.Done;
+			//now go back to top and wait for item in inventory
 			}
 			}
 			//try again. this if statement is needed because concurrency and sheeit
@@ -423,14 +646,18 @@ public void onStart() {
 			joiner = JOINSTATES.clickJoin;
 			break;
 		case clickJoin:
+			if (widgets.get(7,17) != null) {
 			String text = widgets.get(7,17).getMessage();
 			log("text is " + text);
-			if (text.equals("Join Chat"))
+			if (text != null && text.equals("Join Chat"))
 			{
 			
 			
 			click(590,445);
 			joiner = JOINSTATES.enterName;
+			}
+			else
+				joiner = JOINSTATES.Done;
 			}
 			else
 				joiner = JOINSTATES.Done;
@@ -444,9 +671,11 @@ public void onStart() {
 			
 			//actually , if friends is on private , then set it to all.
 			try{
-			if (widgets.get(162,17).getMessage().equals("<col=ffff00>Friends")) {
+			if (!widgets.get(162,17).getMessage().equals("On")) {
 				widgets.get(162,17).interact("<col=ffff00>Private:</col> Show all");
 			}
+			
+			master = MASTERSTATES.Idle;
 				
 			}catch(Exception e){e.printStackTrace();}
 			
@@ -489,6 +718,59 @@ public void onStart() {
 		}
 		return true;
 	}
+	
+	
+	
+class Travelling {
+		
+		TravelNode currentDestination;
+		TravelNode headGE;
+		TravelNode tailFalador;
+		
+		boolean directionTowardsFalador;
+		
+		
+		
+		class TravelNode {
+			TravelNode towardsFalador=null, towardsGE=null;
+			private int x, y;
+			boolean finalDestination;
+			public TravelNode(int x, int y) {
+				this.x=x;this.y=y;
+				finalDestination=false;
+			}
+		}
+		
+		//TODO: put things in path thing manually. maybe use arraylist idk whatever works for easiest inputing w helper function
+		public Travelling(boolean directionTowardsFalador) {
+			this.directionTowardsFalador = directionTowardsFalador;
+			defineTree();
+		}
+		public ArrayList<TravelNode> temp;
+		private void defineTree() {
+			//TODO: populate the tree so its usable
+			temp = new ArrayList<>();
+			//0 is grand exchange. end is falador west bank.
+			for (int i = 0; i < xymashup.length; i+=2) {
+				temp.add(new TravelNode(xymashup[i],xymashup[i+1]));
+			}
+			
+			temp.get(0).towardsFalador = temp.get(1);
+			for (int i = 1; i < temp.size()-1; i++) {
+				temp.get(i).towardsFalador = temp.get(i+1);
+				temp.get(i).towardsGE = temp.get(i-1);
+			}
+			temp.get(temp.size()-1).towardsGE = temp.get(temp.size()-2);
+			
+			
+			
+			
+		}
+		
+		
+	}
+	
+	Travelling traveller = null;
 	
 	int[] xymashup = {
 			//top is lumbridge (tutorial island spawn)

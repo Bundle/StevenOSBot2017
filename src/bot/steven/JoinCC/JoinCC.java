@@ -75,10 +75,14 @@ public class JoinCC  extends Script {
 			//do nothing. should be in CC
 			
 			//TODO: if friends is on private , then set it to all.
+//do nothing. should be in CC
+			
+			//actually , if friends is on private , then set it to all.
 			try{
-			if (widgets.get(162,17).getMessage().equals("<col=ffff00>Friends")) {
+			if (!widgets.get(162,17).getMessage().equals("On")) {
 				widgets.get(162,17).interact("<col=ffff00>Private:</col> Show all");
 			}
+			
 				
 			}catch(Exception e){e.printStackTrace();}
 			

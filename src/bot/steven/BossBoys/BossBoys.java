@@ -122,7 +122,7 @@ public class BossBoys extends Script{
 			//TODO: populate the tree so its usable
 			temp = new ArrayList<>();
 			//0 is grand exchange. end is falador west bank.
-			for (int i = 0; i < xymashup.length/2; i+=2) {
+			for (int i = 0; i < xymashup.length; i+=2) {
 				temp.add(new TravelNode(xymashup[i],xymashup[i+1]));
 			}
 			
@@ -242,13 +242,13 @@ public class BossBoys extends Script{
 		
 		switch (master) {
 		case Collecting:
-			g.drawString("JugBoy=" + collectingState,10,60);
+			g.drawString("BossBoy=" + collectingState,10,60);
 			break;
 		case Distributing:
-			g.drawString("JugBoy=" + distributingState,10,60);
+			g.drawString("BossBoy=" + distributingState,10,60);
 			break;
 		default:
-			g.drawString("JugBoy=" + master,10,60);
+			g.drawString("BossBoy=" + master,10,60);
 			break;
 		
 		}
@@ -290,12 +290,12 @@ public class BossBoys extends Script{
 		return 150;
 	}
 	
-	enum TRAVELLING {
+	enum TRAVELLINGS {
 		FindStart,
 		Travel,
 		Done
 	};
-	TRAVELLING travellingState;
+	TRAVELLINGS travellingState;
 	
 	
 	private void stateMachineTravelling() {
@@ -322,14 +322,14 @@ public class BossBoys extends Script{
 			
 			traveller.currentDestination = traveller.temp.get(closestIndex);
 			
-			travellingState = TRAVELLING.Travel;
+			travellingState = TRAVELLINGS.Travel;
 			break;
 		case Travel:
 			
 			waitForMovements();
 			if (traveller.directionTowardsFalador) {
 				if (traveller.currentDestination.towardsFalador == null) {
-					travellingState = TRAVELLING.Done;
+					travellingState = TRAVELLINGS.Done;
 					break;
 				}
 				else
@@ -341,7 +341,7 @@ public class BossBoys extends Script{
 			else
 			{
 				if (traveller.currentDestination.towardsGE == null) {
-					travellingState = TRAVELLING.Done;
+					travellingState = TRAVELLINGS.Done;
 					break;
 				}
 				else
