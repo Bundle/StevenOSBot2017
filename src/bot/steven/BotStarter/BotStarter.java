@@ -39,43 +39,49 @@ public class BotStarter {
 		109,110,111,112,//buying wizard's mind bomb,
 		113,//113 is Ruck Crab, used for training my main
 		114,115,//these two are hand customized and botted tutorial island, hand walked to GE
+		116,//116oscx: hand customized, botted tutorial island
+		//giving both of them 500k and seeing how far they get
 		116,117,118,119,120,122,123,
 		124,125,
 		126,127,
-		128,129,
+		128,129,130,131,132,133,
+		134,135,
+		136,137,138,139,140,141,
+		142,
+		145,143,144,145,146,//february 5 2018
+		149,150,151,152,
+		
+		153,
+		154,155,156,
+		157,158,159,
+		160
 	};
 	public int[] aboutToCreate = {
 			
 	};
 	public int[] justCreatedNeedsTutorialIsland = {
 			
-			147,
-			148,
-			149,150,151,152,
-			153,
-			154,155,156,
-			157,158,159,
-			160
+			
+			
 	};
 	public int[] doneTutorialIslandSittingAtLumby = {
 			
-			130,131,132,133,
-			134,135,
-			136,137,138,139,140,
-			141,
-			142,
-			143,144,145,146,
-			//116,
-			//122,123
+			161,162,163,164
+			
+			
+			
+			
+			
 	};
 	public int[] kebabBots = {
 			118,119,120,
 			
 	};
 	public int[] memberAccounts = {
-			116,//116oscx: hand customized, botted tutorial island
-			//giving both of them 500k and seeing how far they get
+			
 			121,//121LordBurk: this one is tutorial island by hand so i can safely get 1m from burggy
+			147,
+			148,
 	};
 	public int[] availableAccounts = {
 			
@@ -86,10 +92,6 @@ public class BotStarter {
 			//working on these . . .
 			
 			
-			114,115,116,
-			117,118,119,120,
-			121,
-			122,123
 			/*
 			124,
 			125,126,127,128,
@@ -247,7 +249,7 @@ public class BotStarter {
 			}
 			
 			final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
-					+ "OSBot 2.4.153.jar\" "
+					+ "OSBot 2.4.162.jar\" "
 					+ "-login gangsthurh:s0134201342 -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
 					+ "0134201342:1234"
