@@ -12,14 +12,17 @@ import org.osbot.rs07.script.ScriptManifest;
 
 @ScriptManifest(author = "Steven Ventura", info = "JustLogin", logo = "", name = "JustLogin", version = 0)
 public class JustLogin extends Script{
-	
+	private ArrayList<Integer> loggedXs = new ArrayList<>(), loggedYs = new ArrayList<>();
 	
 	public void onStart() {
 		StevenButton b = 
 		new StevenButton("coords",10,440) {
 			public void onStevenClick() {
 				if (this.pressed == true)//reverse btw
-					log("" + myPlayer().getX() + ", " + myPlayer().getY() + "\r\n");
+				{	log("" + myPlayer().getX() + ", " + myPlayer().getY() + "\r\n");
+					loggedXs.add(myPlayer().getX());
+					loggedYs.add(myPlayer().getY());
+				}
 				this.pressed = false;
 				new Thread() {
 					public void run() {
@@ -31,7 +34,27 @@ public class JustLogin extends Script{
 				}.start();
 			}
 		};
+		StevenButton b2 = 
+				new StevenButton("print",120,440) {
+					public void onStevenClick() {
+						String logme = "{";
+						for (int i = 0; i < loggedXs.size(); i++) {
+							logme += "{" + loggedXs.get(i) + ", " + loggedYs.get(i) + "},";
+						}
+						logme += "\r\n};";
+						log("\r\n"+logme);
+					}
+				};
+				StevenButton b3 = 
+						new StevenButton("Clear",120,300	) {
+							public void onStevenClick() {
+								loggedXs = new ArrayList<Integer>();
+								loggedYs = new ArrayList<Integer>();
+							}
+						};
 		stevenbuttons.add(b);
+		stevenbuttons.add(b2);
+		stevenbuttons.add(b3);
 		bot.addMouseListener(new MouseListener() {
 			//TODO: ADD IN THE BUTTONS Cx
 			@Override

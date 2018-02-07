@@ -3,6 +3,7 @@ package bot.steven.JoinCC;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
+import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 

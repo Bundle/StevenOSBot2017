@@ -12,6 +12,7 @@ import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.model.RS2Object;
 import org.osbot.rs07.api.model.WallObject;
+import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 
@@ -21,6 +22,11 @@ import org.osbot.rs07.script.ScriptManifest;
  * DONETODO: change hide value to normal hides
  * DONETODO: create path from lumbridge to desert
  * DONETODO: walk along the path state machine
+ * TODO: walk to GE
+ * TODO: walk back to desert from GE
+ * TODO: buy items at GE
+ * TODO: sell hides at GE
+ * TODO: account for new states upon login
  */
 
 @ScriptManifest(author = "Steven Ventura", info = "Tan normal hides", logo = "", name = "HideTanner", version = 0)
@@ -40,14 +46,40 @@ public class HideTanner extends Script{
 	}
 	enum CONTROLLERBOY {
 		HIDESTATES,
-		WALKINGTODESERT
+		WALKINGSPAWN,
+		WALKINGTOGE,
+		WALKINGTODESERT,
+		BUYINGHIDES
 	}
+	enum WALKINGSPAWN {
+		FindingLocation,
+		WALKINGSPAWN,
+		Done
+	}
+	WALKINGSPAWN walkingSpawnState;
+	enum WALKINGTOGE {
+		FindingLocation,
+		WalkingtoGE,
+		Done
+		
+	}
+	WALKINGTOGE walkingToGE;
+	
 	enum WALKINGTODESERT {
 		FindingLocation,
 		WalkingToDesert,
 		Done
 	}
-	WALKINGTODESERT walkingState;
+	WALKINGTODESERT walkingToDesert;
+	
+	enum BUYINGHIDES {
+		CheckingBankForItems,
+		BuyingFromShoppingList,
+		SellHides,
+		FinishedBoy,
+		Done
+	}
+	BUYINGHIDES buyingHides;
 	
 	CONTROLLERBOY master;
 	
@@ -106,14 +138,14 @@ public class HideTanner extends Script{
 		
 	}
 	ArrayList<StevenButton> stevenbuttons = new ArrayList<>();
-	private boolean finishAfterThis = false;
+	private boolean restockThisTime = false;
 	
 	@Override
 	public void onStart() {
 		
-		stevenbuttons.add(new StevenButton("Finish Up",10,440) {
+		stevenbuttons.add(new StevenButton("Restock",10,440) {
 			public void onStevenClick() {
-				finishAfterThis = !finishAfterThis;
+				restockThisTime = !restockThisTime;
 			}
 		});
 		
@@ -165,9 +197,25 @@ public class HideTanner extends Script{
 		}
 		else
 		{
-			master = CONTROLLERBOY.WALKINGTODESERT;	
-			walkingState = WALKINGTODESERT.FindingLocation;
+			master = CONTROLLERBOY.WALKINGSPAWN;	
+			walkingSpawnState = WALKINGSPAWN.FindingLocation;
 		}
+		
+		
+	}
+	public void onMessage(Message message)
+	{
+		final int CLANCHAT = 9, WHISPER = 3;
+		String text = message.getMessage();
+		
+			if (message.getTypeId() == CLANCHAT) {
+				if (text.equalsIgnoreCase("Hop")) {
+					log("hoppin worlds btw");
+					worlds.hopToF2PWorld();
+				}
+			}
+		
+		
 		
 		
 	}
@@ -179,10 +227,17 @@ public class HideTanner extends Script{
 		}
 		
 		g.setPaint(Color.CYAN);
-		if (master == CONTROLLERBOY.WALKINGTODESERT) 
-			g.drawString("HIDEBOT: interrupt: " + walkingState,10,60);
+		if (master == CONTROLLERBOY.WALKINGSPAWN) 
+			g.drawString("HIDEBOT: interrupt: " + walkingSpawnState,10,60);
 		else if (master == CONTROLLERBOY.HIDESTATES)
 			g.drawString("HIDEBOT: currentState is " + currentState,10,60);
+		else if (master == CONTROLLERBOY.WALKINGTOGE)
+			g.drawString("HIDEBOT: interrupt: " + walkingToGE,10,60);
+		else if (master == CONTROLLERBOY.WALKINGTODESERT)
+			g.drawString("HIDEBOT: interrupt: " + walkingToDesert,10,60);
+		else if (master == CONTROLLERBOY.BUYINGHIDES)
+			g.drawString("HIDEBOT: interrupt: " + buyingHides,10,60);
+		
 		g.drawString("extra pots:" + getExtraPotAmount(),10,80);
 		g.drawString("Left=" + hideAmountLeft + ",Done=" + hideAmountDone, 10,100);
 		g.drawString("TimeLeft=" + reee((int)(hideAmountLeft/26*36)),10,120);
@@ -279,7 +334,10 @@ public class HideTanner extends Script{
 			if (bank.isOpen())
 				hideAmountLeft = (int)bank.getAmount("Cowhide") + (int)inventory.getAmount("Cowhide");
 			if (hideAmountLeft == 0) {
-				//TODO: heyo guys, amordeus here
+				if (restockThisTime) {
+					master = CONTROLLERBOY.WALKINGTOGE;
+					walkingToGE = WALKINGTOGE.FindingLocation;
+				}else	System.exit(0);
 				break;
 			}
 			bank.withdrawAll("Cowhide");
@@ -370,43 +428,42 @@ public class HideTanner extends Script{
 		
 		
 		}
-			else if (master == CONTROLLERBOY.WALKINGTODESERT) 
-				switch(walkingState) {
+			else if (master == CONTROLLERBOY.WALKINGSPAWN) 
+				switch(walkingSpawnState) {
 				case FindingLocation:
 					int closest = -1;
 					double closestdistance = Double.MAX_VALUE;
-					for (int i = 0; i < walkycoords.length; i++) {
-						double pls = Math.sqrt(Math.pow(myPlayer().getX()-walkycoords[i][0],2)+Math.pow(
-								myPlayer().getY()-walkycoords[i][1],2));
+					for (int i = 0; i < walkycoordsSpawn.length; i++) {
+						double pls = Math.sqrt(Math.pow(myPlayer().getX()-walkycoordsSpawn[i][0],2)+Math.pow(
+								myPlayer().getY()-walkycoordsSpawn[i][1],2));
 						if (pls < closestdistance)
 						{
 						closestdistance = pls;
 						closest = i;
 						}
 					}
-					currentLocation = closest;
-					walkingState = WALKINGTODESERT.WalkingToDesert;
+					currentLocationSpawn = closest;
+					walkingSpawnState = WALKINGSPAWN.WALKINGSPAWN;
 					break;
-				case WalkingToDesert:
+				case WALKINGSPAWN:
 					
-					walking.walk(new Position(walkycoords[currentLocation][0],
-										walkycoords[currentLocation][1],
+					walking.walk(new Position(walkycoordsSpawn[currentLocationSpawn][0],
+										walkycoordsSpawn[currentLocationSpawn][1],
 										0));
-					rsleep(1000);
 					waitForMovements();
 					
 					double pls = 
-							Math.sqrt(Math.pow(myPlayer().getX()-walkycoords[currentLocation][0],2) + 
-									Math.pow(myPlayer().getY()-walkycoords[currentLocation][1],2));
+							Math.sqrt(Math.pow(myPlayer().getX()-walkycoordsSpawn[currentLocationSpawn][0],2) + 
+									Math.pow(myPlayer().getY()-walkycoordsSpawn[currentLocationSpawn][1],2));
 							
 					if (pls < 4)
-						currentLocation++;
+						currentLocationSpawn++;
 					else
 						log("uhh he aint movin xD");
 					
 					
-					if (currentLocation == walkycoords.length) {
-						walkingState = WALKINGTODESERT.Done;
+					if (currentLocationSpawn == walkycoordsSpawn.length) {
+						walkingSpawnState = WALKINGSPAWN.Done;
 					}
 					
 					break;
@@ -419,12 +476,69 @@ public class HideTanner extends Script{
 				
 				
 				}
+			else if (master == CONTROLLERBOY.WALKINGTOGE) {
+				stateMachineWalkingtoGE();
+			}
 				
 		
 		
 		return (int)(50*Math.random() + 50);
 	}
-	int currentLocation = -1;
+	private void stateMachineWalkingtoGE() {
+		switch(walkingToGE) {
+			case FindingLocation:
+				
+				int closest = -1;
+				double closestdistance = Double.MAX_VALUE;
+				for (int i = 0; i < walkycoordsGEDESERT.length; i++) {
+					double pls = Math.sqrt(Math.pow(myPlayer().getX()-walkycoordsGEDESERT[i][0],2)+Math.pow(
+							myPlayer().getY()-walkycoordsGEDESERT[i][1],2));
+					if (pls < closestdistance)
+					{
+					closestdistance = pls;
+					closest = i;
+					}
+				}
+				currentLocationTowardsGE = closest;
+				walkingToGE = WALKINGTOGE.WalkingtoGE;
+				
+				
+				break;
+			case WalkingtoGE:
+				walking.walk(new Position(walkycoordsGEDESERT[currentLocationTowardsGE][0],
+						walkycoordsGEDESERT[currentLocationTowardsGE][1],
+						0));
+	waitForMovements();
+	
+	double pls = 
+			Math.sqrt(Math.pow(myPlayer().getX()-walkycoordsGEDESERT[currentLocationTowardsGE][0],2) + 
+					Math.pow(myPlayer().getY()-walkycoordsGEDESERT[currentLocationTowardsGE][1],2));
+			
+	if (pls < 4)
+		currentLocationTowardsGE++;
+	else
+		log("uhh he aint movin xD");
+	
+	
+	if (currentLocationTowardsGE == walkycoordsGEDESERT.length) {
+		walkingSpawnState = WALKINGSPAWN.Done;
+	}
+	
+				break;
+			case Done:
+				if (restockThisTime) {
+					master = CONTROLLERBOY.BUYINGHIDES;
+					buyingHides = BUYINGHIDES.CheckingBankForItems;
+				}
+				else
+					System.exit(0);
+				break;
+			
+			
+			
+		}
+	}
+	int currentLocationSpawn = -1;
 	private boolean WaitForWidget (int arg1, int arg2)
 	{
 		int loops = 0;
@@ -448,7 +562,7 @@ public class HideTanner extends Script{
 		return true;
 	}
 	
-	int[][] walkycoords = {{3232, 3230},
+	int[][] walkycoordsSpawn = {{3232, 3230},
 	{3237, 3226},
 	{3245, 3226},
 	{3248, 3225},
@@ -496,7 +610,9 @@ public class HideTanner extends Script{
 	{3276, 3180},
 	{3275, 3175}};
 
-	
+	int currentLocationTowardsGE = -1;
+	int[][] walkycoordsGEDESERT = {{3273, 3167},{3276, 3175},{3278, 3177},{3278, 3181},{3280, 3187},{3281, 3188},{3281, 3192},{3281, 3196},{3280, 3202},{3278, 3206},{3279, 3213},{3277, 3221},{3275, 3223},{3275, 3229},{3275, 3235},{3275, 3239},{3273, 3241},{3273, 3247},{3273, 3255},{3272, 3259},{3272, 3265},{3272, 3271},{3273, 3277},{3273, 3281},{3273, 3287},{3273, 3293},{3273, 3295},{3273, 3301},{3273, 3305},{3273, 3311},{3274, 3313},{3274, 3317},{3274, 3323},{3278, 3330},{3272, 3330},{3269, 3329},{3265, 3330},{3257, 3330},{3252, 3333},{3246, 3335},{3238, 3335},{3234, 3336},{3230, 3336},{3228, 3342},{3227, 3348},{3227, 3352},{3223, 3353},{3219, 3354},{3213, 3360},{3212, 3361},{3212, 3367},{3210, 3373},{3204, 3376},{3199, 3374},{3191, 3374},{3185, 3378},{3182, 3381},{3181, 3386},{3176, 3392},{3172, 3396},{3172, 3402},{3172, 3408},{3172, 3414},{3172, 3420},{3172, 3424},{3174, 3426},{3174, 3430},{3174, 3439},{3174, 3442},{3175, 3447},{3170, 3452},{3168, 3458},{3167, 3459},{3166, 3463},{3166, 3469},{3166, 3475},{3164, 3477},{3164, 3481},{3164, 3484},{3165, 3486},
+	};
 	
 	
 	

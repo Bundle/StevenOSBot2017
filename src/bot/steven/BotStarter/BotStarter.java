@@ -235,7 +235,8 @@ public class BotStarter {
 			}
 			if (name.equalsIgnoreCase("hide"))
 			{
-				name = "GreenDragonhides";
+				//name = "GreenDragonhides";
+				name = "HideTanner";
 			}
 			if (name.equalsIgnoreCase("kill"))
 			{
