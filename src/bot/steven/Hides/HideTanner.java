@@ -22,11 +22,11 @@ import org.osbot.rs07.script.ScriptManifest;
  * DONETODO: change hide value to normal hides
  * DONETODO: create path from lumbridge to desert
  * DONETODO: walk along the path state machine
- * TODO: walk to GE
- * TODO: walk back to desert from GE
+ * DONETODO: walk to GE
+ * DONETODO: walk back to desert from GE
  * TODO: buy items at GE
  * TODO: sell hides at GE
- * TODO: account for new states upon login
+ * TODO: account for new states upon login: if starts in GE: 0 gold, enough gold , materials?
  */
 
 @ScriptManifest(author = "Steven Ventura", info = "Tan normal hides", logo = "", name = "HideTanner", version = 0)
@@ -102,7 +102,7 @@ public class HideTanner extends Script{
 		mouse.click(RIGHTCLICK);
 	}
 	int totalJugsFilled = 0;
-	HIDESTATES currentState = HIDESTATES.OpenBank;
+	HIDESTATES hideState = HIDESTATES.OpenBank;
 
 	private int getExtraPotAmount()
 	{
@@ -193,7 +193,7 @@ public class HideTanner extends Script{
 		//set player X,Y coordinate master control value and sub control values initialize
 		if (myPlayer().getX() > 3267 && myPlayer().getY() < 3196) {
 			master = CONTROLLERBOY.HIDESTATES;
-			currentState = HIDESTATES.OpenBank;
+			hideState = HIDESTATES.OpenBank;
 		}
 		else
 		{
@@ -230,7 +230,7 @@ public class HideTanner extends Script{
 		if (master == CONTROLLERBOY.WALKINGSPAWN) 
 			g.drawString("HIDEBOT: interrupt: " + walkingSpawnState,10,60);
 		else if (master == CONTROLLERBOY.HIDESTATES)
-			g.drawString("HIDEBOT: currentState is " + currentState,10,60);
+			g.drawString("HIDEBOT: hideState is " + hideState,10,60);
 		else if (master == CONTROLLERBOY.WALKINGTOGE)
 			g.drawString("HIDEBOT: interrupt: " + walkingToGE,10,60);
 		else if (master == CONTROLLERBOY.WALKINGTODESERT)
@@ -289,7 +289,7 @@ public class HideTanner extends Script{
 		
 		
 			if (master == CONTROLLERBOY.HIDESTATES)
-		switch (currentState) {
+		switch (hideState) {
 		case OpenBank:
 			
 			
@@ -312,7 +312,7 @@ public class HideTanner extends Script{
 			bank.open();
 			rsleep(100);
 			}
-			currentState = HIDESTATES.DepositHides;
+			hideState = HIDESTATES.DepositHides;
 			break;
 		case DepositHides:
 			//right click on hide and hit deposit all
@@ -321,7 +321,7 @@ public class HideTanner extends Script{
 			bank.depositAll();
 			
 			}catch(Exception e){log("error, nothing in slot 1 btw");};
-			currentState = HIDESTATES.WithdrawHides;
+			hideState = HIDESTATES.WithdrawHides;
 			break;
 		case WithdrawHides:
 			//money
@@ -343,7 +343,7 @@ public class HideTanner extends Script{
 			bank.withdrawAll("Cowhide");
 			
 			rsleep(500);
-			currentState = HIDESTATES.CloseBank;
+			hideState = HIDESTATES.CloseBank;
 			break;
 		
 		case Done:
@@ -351,7 +351,7 @@ public class HideTanner extends Script{
 			break;
 		case CloseBank:
 			bank.close();
-			currentState = HIDESTATES.RunToTanner;
+			hideState = HIDESTATES.RunToTanner;
 			break;
 		case RunToTanner:
 			//enable run
@@ -376,7 +376,7 @@ public class HideTanner extends Script{
 			
 			
 			
-			currentState = HIDESTATES.TradeWithTanner;
+			hideState = HIDESTATES.TradeWithTanner;
 			break;
 		case TradeWithTanner:
 			openTannerDoor();
@@ -391,7 +391,7 @@ public class HideTanner extends Script{
 			}
 			
 			
-			currentState = HIDESTATES.TanAllHides;
+			hideState = HIDESTATES.TanAllHides;
 			break;
 		case TanAllHides:
 			WaitForWidget(324,153);
@@ -402,11 +402,11 @@ public class HideTanner extends Script{
 				{
 				widgets.get(324,SOFT).interact("Tan All");
 				hideAmountDone += 26;
-				currentState = HIDESTATES.ReturnToBank;
+				hideState = HIDESTATES.ReturnToBank;
 				}
 			else
 			{
-				currentState = HIDESTATES.TradeWithTanner;
+				hideState = HIDESTATES.TradeWithTanner;
 			}
 			openTannerDoor();
 				
@@ -421,7 +421,7 @@ public class HideTanner extends Script{
 			}
 			
 			if (myPlayer().getY() < 3190-1)//otherwise he is trapped in the room and needs to try the door again. 
-				currentState = HIDESTATES.OpenBank;
+				hideState = HIDESTATES.OpenBank;
 			break;
 			
 		
@@ -470,7 +470,7 @@ public class HideTanner extends Script{
 				case Done:
 					//begin tanning i guess
 					master = CONTROLLERBOY.HIDESTATES;
-					currentState = HIDESTATES.OpenBank;
+					hideState = HIDESTATES.OpenBank;
 					break;
 				
 				
@@ -479,10 +479,68 @@ public class HideTanner extends Script{
 			else if (master == CONTROLLERBOY.WALKINGTOGE) {
 				stateMachineWalkingtoGE();
 			}
+			else if (master == CONTROLLERBOY.WALKINGTODESERT) {
+				stateMachineWalkingBackToDesert();
+			}
 				
 		
 		
 		return (int)(50*Math.random() + 50);
+	}
+	private void stateMachineWalkingBackToDesert() {
+		switch(walkingToDesert) {
+		case FindingLocation:
+			
+			int closest = -1;
+			double closestdistance = Double.MAX_VALUE;
+			for (int i = 0; i < walkycoordsGEDESERT.length; i++) {
+				double pls = Math.sqrt(Math.pow(myPlayer().getX()-walkycoordsGEDESERT[i][0],2)+Math.pow(
+						myPlayer().getY()-walkycoordsGEDESERT[i][1],2));
+				if (pls < closestdistance)
+				{
+				closestdistance = pls;
+				closest = i;
+				}
+			}
+			currentLocationTowardsDesert = closest;
+			walkingToDesert = WALKINGTODESERT.WalkingToDesert;
+			
+			
+			break;
+		case WalkingToDesert:
+			walking.walk(new Position(walkycoordsGEDESERT[currentLocationTowardsDesert][0],
+					walkycoordsGEDESERT[currentLocationTowardsDesert][1],
+					0));
+waitForMovements();
+
+double pls = 
+		Math.sqrt(Math.pow(myPlayer().getX()-walkycoordsGEDESERT[currentLocationTowardsDesert][0],2) + 
+				Math.pow(myPlayer().getY()-walkycoordsGEDESERT[currentLocationTowardsDesert][1],2));
+		
+if (pls < 4)
+	currentLocationTowardsDesert--;
+else
+	log("uhh he aint movin xD");
+
+
+if (currentLocationTowardsDesert == 0) {
+	walkingToDesert = walkingToDesert.Done;
+}
+
+			break;
+		case Done:
+			if (restockThisTime) {
+				master = CONTROLLERBOY.HIDESTATES;
+				hideState = HIDESTATES.OpenBank;
+			}
+			else
+				System.exit(0);
+			break;
+		
+		
+		
+	}
+		
 	}
 	private void stateMachineWalkingtoGE() {
 		switch(walkingToGE) {
@@ -521,7 +579,7 @@ public class HideTanner extends Script{
 	
 	
 	if (currentLocationTowardsGE == walkycoordsGEDESERT.length) {
-		walkingSpawnState = WALKINGSPAWN.Done;
+		walkingToGE = WALKINGTOGE.Done;
 	}
 	
 				break;
@@ -611,6 +669,7 @@ public class HideTanner extends Script{
 	{3275, 3175}};
 
 	int currentLocationTowardsGE = -1;
+	int currentLocationTowardsDesert = -1;
 	int[][] walkycoordsGEDESERT = {{3273, 3167},{3276, 3175},{3278, 3177},{3278, 3181},{3280, 3187},{3281, 3188},{3281, 3192},{3281, 3196},{3280, 3202},{3278, 3206},{3279, 3213},{3277, 3221},{3275, 3223},{3275, 3229},{3275, 3235},{3275, 3239},{3273, 3241},{3273, 3247},{3273, 3255},{3272, 3259},{3272, 3265},{3272, 3271},{3273, 3277},{3273, 3281},{3273, 3287},{3273, 3293},{3273, 3295},{3273, 3301},{3273, 3305},{3273, 3311},{3274, 3313},{3274, 3317},{3274, 3323},{3278, 3330},{3272, 3330},{3269, 3329},{3265, 3330},{3257, 3330},{3252, 3333},{3246, 3335},{3238, 3335},{3234, 3336},{3230, 3336},{3228, 3342},{3227, 3348},{3227, 3352},{3223, 3353},{3219, 3354},{3213, 3360},{3212, 3361},{3212, 3367},{3210, 3373},{3204, 3376},{3199, 3374},{3191, 3374},{3185, 3378},{3182, 3381},{3181, 3386},{3176, 3392},{3172, 3396},{3172, 3402},{3172, 3408},{3172, 3414},{3172, 3420},{3172, 3424},{3174, 3426},{3174, 3430},{3174, 3439},{3174, 3442},{3175, 3447},{3170, 3452},{3168, 3458},{3167, 3459},{3166, 3463},{3166, 3469},{3166, 3475},{3164, 3477},{3164, 3481},{3164, 3484},{3165, 3486},
 	};
 	
