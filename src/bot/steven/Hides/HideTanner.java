@@ -5,9 +5,15 @@ import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.TreeMap;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.model.RS2Object;
@@ -15,6 +21,9 @@ import org.osbot.rs07.api.model.WallObject;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
+
+
+
 
 /*
  * DONETODO: open hide tanner guy door if closed
@@ -24,8 +33,8 @@ import org.osbot.rs07.script.ScriptManifest;
  * DONETODO: walk along the path state machine
  * DONETODO: walk to GE
  * DONETODO: walk back to desert from GE
- * TODO: buy items at GE
- * TODO: sell hides at GE
+ * DONETODO: buy items at GE
+ * DONETODO: sell hides at GE
  * TODO: account for new states upon login: if starts in GE: 0 gold, enough gold , materials?
  */
 
@@ -76,7 +85,6 @@ public class HideTanner extends Script{
 		CheckingBankForItems,
 		BuyingFromShoppingList,
 		SellHides,
-		FinishedBoy,
 		Done
 	}
 	BUYINGHIDES buyingHides;
@@ -140,8 +148,11 @@ public class HideTanner extends Script{
 	ArrayList<StevenButton> stevenbuttons = new ArrayList<>();
 	private boolean restockThisTime = false;
 	
+	
 	@Override
 	public void onStart() {
+		
+		populatePrices();
 		
 		stevenbuttons.add(new StevenButton("Restock",10,440) {
 			public void onStevenClick() {
@@ -482,10 +493,205 @@ public class HideTanner extends Script{
 			else if (master == CONTROLLERBOY.WALKINGTODESERT) {
 				stateMachineWalkingBackToDesert();
 			}
+			else if (master == CONTROLLERBOY.BUYINGHIDES) {
+				stateMachineBuyingHides();
+			}
 				
 		
 		
 		return (int)(50*Math.random() + 50);
+	}
+	private int PRICE_BUYING_HIDE, PRICE_SELLING_HIDE;
+private void populatePrices() {
+	try{
+	Scanner scan = new Scanner(new File(getDirectoryData() + "\\" + "cowhides.data"));
+	PRICE_BUYING_HIDE = (int)(1.10f*Integer.parseInt(scan.nextLine()));
+	PRICE_SELLING_HIDE = (int)(0.90f*Integer.parseInt(scan.nextLine()));
+	scan.close();
+	}catch(Exception e){e.printStackTrace();}
+	}
+
+	private int getPrice(String name)
+	{
+		switch(name) {
+		case "Cowhide":
+			return PRICE_BUYING_HIDE;
+		case "Leather":
+			return PRICE_SELLING_HIDE;
+		
+		}
+		return -1;
+	}
+	private long coins = -1;
+	private long hidesCount = -1;
+	private long finishedHides = -1;
+	private void stateMachineBuyingHides() {
+		String[] itemsToCheck = {"Coins","Cowhide","Leather"};
+		switch (buyingHides) {
+		case CheckingBankForItems:
+			int threshold = 50000;
+			
+			coins = bank.getAmount(itemsToCheck[0]) + inventory.getAmount(itemsToCheck[0])
+			- threshold;//save 13k coins for buying hides
+			
+			hidesCount = bank.getAmount(itemsToCheck[1]) + inventory.getAmount(itemsToCheck[1]);
+			
+			finishedHides = bank.getAmount(itemsToCheck[2]) + inventory.getAmount(itemsToCheck[2]);
+			
+			if (coins > threshold+1000) {
+				int numHidespls = (int)coins/(getPrice("Cowhide"));
+						
+				shoppingList.put("Cowhide", numHidespls);
+				
+					
+				buyingHides = BUYINGHIDES.BuyingFromShoppingList;
+			}
+			else if (finishedHides > 0) {
+				buyingHides = BUYINGHIDES.SellHides;
+			}
+			//evaluate: do we go to the desert, or do we buy more items?
+			
+			break;
+		case BuyingFromShoppingList:
+			
+			
+			System.out.println(shoppingList);
+			String itemName = "";
+			
+			//get 1 item name
+			for (String s : shoppingList.keySet()) {
+				itemName = s;
+				break;
+			}
+			
+			
+			try{
+			while (!bank.isOpen()) {
+				bank.open();
+				rsleep(1000);
+			}
+			}catch(Exception e){e.printStackTrace();}
+			bank.withdrawAll("Coins");
+			rsleep(1000);
+			
+			Entity clerk = npcs.closest("Grand Exchange Clerk");
+			if (clerk != null)
+				clerk.interact("Exchange");
+			
+			
+			//click collect button btw
+			rsleep(1500);
+			click(456,64);
+			
+			
+			if (WaitForWidget(465,7,3)) {//create buy offer widget 
+				
+				click(456,64);
+				rsleep(800);
+				click(59,145);
+				if (WaitForWidget(465,24,21)) {
+					click(113,117);
+					rsleep(1500);
+					keyboard.typeString(itemName);
+					if (WaitForWidget(162,39,2)) {
+				if (widgets.get(162,39,1).getMessage().contains(itemName)) {
+					click(34,388);
+					rsleep(3000);
+					click(386,205);
+					if (WaitForWidget(162,34)) {
+						rsleep(1500);
+						keyboard.typeString(""+getPrice(itemName)); 
+						rsleep(3000);
+						//click on amount to buy ...
+						click(233,209);
+						rsleep(3000);
+						//type in amount to buy
+						keyboard.typeString(""+shoppingList.get(itemName));
+						rsleep(1500);
+						
+						click(260,287);//click confirm
+						//wait for collect button to appear
+						if (WaitForWidget(465,6,1))
+						{
+							click(456,64);
+						}
+						shoppingList.remove(itemName);
+						buyingHides = BUYINGHIDES.CheckingBankForItems;
+						}
+					}
+					}
+					
+				}
+				
+			}
+			
+			
+			
+			break;
+		case SellHides:
+			try{
+			while (!bank.isOpen()) {
+				bank.open();
+				rsleep(500);
+			}
+			}catch(Exception e){e.printStackTrace();}
+			long finishedHides2 = bank.getAmount(itemsToCheck[2]) + inventory.getAmount(itemsToCheck[2]);
+			if (finishedHides2 == 0) {
+				buyingHides = BUYINGHIDES.CheckingBankForItems;
+				break;
+			}
+			bank.depositAll();
+			rsleep(1500);
+			//click the note thing
+			click(295,322);
+			rsleep(500);
+			bank.withdrawAll("Leather");
+			bank.close();
+			
+			Entity clerk2 = npcs.closest("Grand Exchange Clerk");
+			if (clerk2 != null)
+				clerk2.interact("Exchange");
+			else
+				break;
+			
+			//click collect
+			rsleep(2000);
+			click(456,64);
+			
+			if (WaitForWidget(465,7,3)) {//create buy offer widget 
+				//click on item to "offer" it
+				inventory.getItem("Leather").interact("Offer");
+				if (WaitForWidget(465,24,21)) {
+					
+					
+					click(386,205);
+					if (WaitForWidget(162,34)) {
+						keyboard.typeString("" + PRICE_SELLING_HIDE); 
+						rsleep(1500);
+						click(260,287);//click confirm
+						//wait for collect button to appear
+						if (WaitForWidget(465,6,1))
+						{
+							click(456,64);
+							//fall back and let base case handle the state change
+						}
+						//click on it
+						
+					}
+					
+					}
+				
+			}
+			
+			
+			
+			
+			break;
+		
+		}
+		
+		
+		
 	}
 	private void stateMachineWalkingBackToDesert() {
 		switch(walkingToDesert) {
@@ -524,7 +730,7 @@ else
 
 
 if (currentLocationTowardsDesert == 0) {
-	walkingToDesert = walkingToDesert.Done;
+	walkingToDesert = WALKINGTODESERT.Done;
 }
 
 			break;
@@ -673,6 +879,22 @@ if (currentLocationTowardsDesert == 0) {
 	int[][] walkycoordsGEDESERT = {{3273, 3167},{3276, 3175},{3278, 3177},{3278, 3181},{3280, 3187},{3281, 3188},{3281, 3192},{3281, 3196},{3280, 3202},{3278, 3206},{3279, 3213},{3277, 3221},{3275, 3223},{3275, 3229},{3275, 3235},{3275, 3239},{3273, 3241},{3273, 3247},{3273, 3255},{3272, 3259},{3272, 3265},{3272, 3271},{3273, 3277},{3273, 3281},{3273, 3287},{3273, 3293},{3273, 3295},{3273, 3301},{3273, 3305},{3273, 3311},{3274, 3313},{3274, 3317},{3274, 3323},{3278, 3330},{3272, 3330},{3269, 3329},{3265, 3330},{3257, 3330},{3252, 3333},{3246, 3335},{3238, 3335},{3234, 3336},{3230, 3336},{3228, 3342},{3227, 3348},{3227, 3352},{3223, 3353},{3219, 3354},{3213, 3360},{3212, 3361},{3212, 3367},{3210, 3373},{3204, 3376},{3199, 3374},{3191, 3374},{3185, 3378},{3182, 3381},{3181, 3386},{3176, 3392},{3172, 3396},{3172, 3402},{3172, 3408},{3172, 3414},{3172, 3420},{3172, 3424},{3174, 3426},{3174, 3430},{3174, 3439},{3174, 3442},{3175, 3447},{3170, 3452},{3168, 3458},{3167, 3459},{3166, 3463},{3166, 3469},{3166, 3475},{3164, 3477},{3164, 3481},{3164, 3484},{3165, 3486},
 	};
 	
-	
-	
+	private static int lookupPrice(String name) {
+	    try {
+	        Document doc = Jsoup.connect("http://2007.runescape.wikia.com/wiki/Exchange:" + name.replaceAll(" ", "_")).get();
+	        
+	        Element price = doc.getElementById("GEPrice");
+	        return Integer.parseInt(price.text().replaceAll(",", ""));
+	    } catch (Exception e) {}
+	    return 0;
+	}
+	public static void main(String[]args) {
+		try{File f = new File("C:\\Users\\Yoloswag\\OSBot\\Data\\leather.data");
+		PrintWriter p = new PrintWriter(f);
+		p.write(lookupPrice("Cowhide") + "\r\n");
+		p.write(lookupPrice("Leather") + "\r\n");
+		p.close();
+		
+		}catch(Exception e){e.printStackTrace();}
+	}
 }
