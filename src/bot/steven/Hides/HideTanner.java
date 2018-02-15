@@ -36,6 +36,19 @@ import org.osbot.rs07.script.ScriptManifest;
  * DONETODO: buy items at GE
  * DONETODO: sell hides at GE
  * TODO: account for new states upon login: if starts in GE: 0 gold, enough gold , materials?
+ * TODO: request LordBurk to log in
+ * TODO: find LordBurk, trade
+ * TODO: accept gold from LordBurk
+ * TODO: buy 13k hides from GE using LordBurk's money
+ * TODO: bank and run to the desert
+ * TODO: tan the 13k hides
+ * TODO: return to GE, give LordBurk his hides back
+ */
+/*
+ * goal:
+ * bot starts in lumby, runs to GE, requests LordBurk to log in, finds LordBurk at coordinates, 
+ * trades him, gets the gold, buys 13k cowhide, banks it, runs to the desert, tans the 13k hides, returns to GE and 
+ * gives LordBurk the hides back
  */
 
 @ScriptManifest(author = "Steven Ventura", info = "Tan normal hides", logo = "", name = "HideTanner", version = 0)
@@ -200,9 +213,14 @@ public class HideTanner extends Script{
 			
 		});
 		
-		
+		//TODO: add state for being at G E or inbetween G E and spawnboy
+		if (myPlayer().getY() > 3337) {
+			master = CONTROLLERBOY.WALKINGTOGE;
+			walkingToGE = WALKINGTOGE.FindingLocation;
+		}
+
 		//set player X,Y coordinate master control value and sub control values initialize
-		if (myPlayer().getX() > 3267 && myPlayer().getY() < 3196) {
+		else if (myPlayer().getX() > 3267 && myPlayer().getY() < 3196) {
 			master = CONTROLLERBOY.HIDESTATES;
 			hideState = HIDESTATES.OpenBank;
 		}

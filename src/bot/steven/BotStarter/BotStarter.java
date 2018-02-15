@@ -256,6 +256,9 @@ public class BotStarter {
 					+ "0134201342:1234"
 					+ " -script " + name + ":" + options;
 			
+			
+			
+			
 			//jtf.append(command + "\r\n");
 			jtf.append("starting " + name + " on #" + number + "\r\n");
 			final int pls = i;
