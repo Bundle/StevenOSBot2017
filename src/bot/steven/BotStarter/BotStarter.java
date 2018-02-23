@@ -57,7 +57,7 @@ public class BotStarter {
 		160
 	};
 	public int[] aboutToCreate = {
-			
+			165,166
 	};
 	public int[] justCreatedNeedsTutorialIsland = {
 			
@@ -66,7 +66,7 @@ public class BotStarter {
 	};
 	public int[] doneTutorialIslandSittingAtLumby = {
 			
-			161,162,163,164
+			//161,162,163,164 these 4 are unbanned February for leather reserved. testing.
 			
 			
 			
@@ -248,9 +248,12 @@ public class BotStarter {
 			{
 				name = "GEToDesert";
 			}
+			if (name.equalsIgnoreCase("door")) {
+				name = "DoorCloser";
+			}
 			
 			final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
-					+ "OSBot 2.4.162.jar\" "
+					+ "OSBot 2.5.2.jar\" "
 					+ "-login gangsthurh:s0134201342 -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
 					+ "0134201342:1234"
@@ -297,7 +300,7 @@ public class BotStarter {
 	f.add(jtf);
 	
 	jtf.append("scriptName,bot#min,bot#max GOButton\n");
-	jtf.append("[jug][boss][tutorial][clan][kebab][desert][hide][bomb][log]\n");
+	jtf.append("[door][jug][boss][tutorial][clan][kebab][desert][hide][bomb][log]\n");
 	
 	
 	f.setFocusable(true);

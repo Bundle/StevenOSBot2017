@@ -8,6 +8,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Scanner;
 import java.util.TreeMap;
 
@@ -35,8 +36,8 @@ import org.osbot.rs07.script.ScriptManifest;
  * DONETODO: walk back to desert from GE
  * DONETODO: buy items at GE
  * DONETODO: sell hides at GE
- * TODO: account for new states upon login: if starts in GE: 0 gold, enough gold , materials?
- * TODO: request LordBurk to log in
+ * DONETODO: account for new states upon login: if starts in GE: 0 gold, enough gold , materials?
+ * TODO: request LordBurk to log in when you hit the G E 
  * TODO: find LordBurk, trade
  * TODO: accept gold from LordBurk
  * TODO: buy 13k hides from GE using LordBurk's money
@@ -142,6 +143,85 @@ public class HideTanner extends Script{
 		g.setPaint(Color.WHITE);
 		g.drawString(s.text,s.x,s.y+15);
 	}
+	enum StateBoys {
+		GetGoldFromBurk,
+		WalkToDesertToTan,
+		DoTanning,
+		returnToGE,
+		GiveHidesToBurk,
+		MarkAsBanned,
+		UNKNOWN
+	};
+	class stateDataBoyFile {
+		public stateDataBoyFile() {
+			
+		}
+		public void write() {
+			try {
+			PrintWriter p = new PrintWriter(new File(getDirectoryData() + "\\" + myPlayer().getName() + ".hideStateData"));
+			StateBoys s = StateBoys.UNKNOWN;
+			if (master == CONTROLLERBOY.WALKINGSPAWN)
+			
+			
+			
+			p.close();}catch(Exception e){e.printStackTrace();}
+			
+		}
+		public StateBoys getState() {
+			try{
+			Scanner scan = new Scanner(new File(getDirectoryData() + "\\" + myPlayer().getName() + ".hideStateData"));
+			String line = scan.nextLine();
+			switch (line) {
+			case "GetGoldFromBurk":
+				return StateBoys.GetGoldFromBurk;
+			case "WalkToDesertToTan":
+				return StateBoys.WalkToDesertToTan;
+			case "DoTanning":
+				return StateBoys.DoTanning;
+			case "returnToGE":
+				return StateBoys.returnToGE;
+			case "GiveHidesToBurk":
+				return StateBoys.GiveHidesToBurk;
+			case "MarkAsBanned":
+				return StateBoys.MarkAsBanned;
+			case "UNKNOWN":
+				return StateBoys.UNKNOWN;
+			}
+			}catch(Exception e){e.printStackTrace();}
+			return StateBoys.UNKNOWN;
+		}
+		/*
+		 * 
+		 */
+		
+		
+		
+		
+		
+		
+		
+	}
+	class HideSideBurkFile {
+		
+		public HideSideBurkFile() {
+			
+		}
+		private void writeToFile() {
+		
+			try{File f = new File("C:\\Users\\Yoloswag\\OSBot\\Data\\" + myPlayer().getName() + ".burksummon");
+		PrintWriter p = new PrintWriter(f);
+		
+		p.println(""+new Date());
+		p.println(myPlayer().getName());
+		p.println(""+myPlayer().getX());
+		p.println(""+myPlayer().getY());
+		p.close();
+		
+		p.close();}catch(Exception e){e.printStackTrace();}
+		}
+		
+		
+	}
 	class StevenButton {
 		
 		public int x=-1000, y=-1000, width=80, height=20;
@@ -214,9 +294,13 @@ public class HideTanner extends Script{
 		});
 		
 		//TODO: add state for being at G E or inbetween G E and spawnboy
+			
+		
 		if (myPlayer().getY() > 3337) {
 			master = CONTROLLERBOY.WALKINGTOGE;
 			walkingToGE = WALKINGTOGE.FindingLocation;
+			//if he needs to get items from burk , that will be figured out at the G E from fileinfo 
+			//if he needs to 
 		}
 
 		//set player X,Y coordinate master control value and sub control values initialize
@@ -573,7 +657,7 @@ private void populatePrices() {
 		case BuyingFromShoppingList:
 			
 			
-			System.out.println(shoppingList);
+
 			String itemName = "";
 			
 			//get 1 item name
@@ -803,17 +887,36 @@ if (currentLocationTowardsDesert == 0) {
 	
 	
 	if (currentLocationTowardsGE == walkycoordsGEDESERT.length) {
-		walkingToGE = WALKINGTOGE.Done;
+		walkingToGE = WALKINGTOGE.CheckBankBeforeAskingBurk;
 	}
 	
 				break;
+	
+			case CheckBankBeforeAskingBurk: 
+				//just read the statedata
+				
+				//write the outline of the program
+				
+				//check for item1
+				
+				//check for item2
+				
+				//if we already have enough of item1 and item2, then dont ask burk, just continue another way
+				
+				//else if we have a certain amount of both, then trade burk accordingly
+				
+				break;
+			case AskBurkToLogIn:
+				//ask burk to log in
+				
+				
+				
+				break;
+			case doTradeWaterfallWithBurk:
+				
+				break;
 			case Done:
-				if (restockThisTime) {
-					master = CONTROLLERBOY.BUYINGHIDES;
-					buyingHides = BUYINGHIDES.CheckingBankForItems;
-				}
-				else
-					System.exit(0);
+				
 				break;
 			
 			
