@@ -1,23 +1,48 @@
 package bot.steven.DoorCloser;
+import java.io.File;
+import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Scanner;
+import java.util.TreeMap;
 
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.WallObject;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
-
+//i could do it. "pay me 2mil and i shut off the bots for 1 hour"
 /*
- * TODO: make dank memes for them to type
- * TODO: upon starting program, determine if they are within range of the doors. change starting state from this.
- * TODO: make several bots, determine just how many i need to keep the door perma-shut
- * TODO: name the bots Gangsthurh1, Gangsthurh2, Gangsthurh3, Gangsthurh4, Gangsthurh5,
+ * DONETODO: make it save the words people say
+ * DONETODO: dolphin emulator btw online play melee
+ * DONETODO: make dank memes for them to type
+ * DONETODO: upon starting program, determine if they are within range of the doors. change starting state from this.
+ * DONETODO: make several bots, determine just how many i need to keep the door perma-shut
+ * NOPETODO: name the bots Gangsthurh1, Gangsthurh2, Gangsthurh3, Gangsthurh4, Gangsthurh5,
+ * TODO: 
  */
 @ScriptManifest(author = "Steven Ventura", info = "Take Turns closing doors", logo = "", name = "DoorCloser", version = 0)
 public class DoorCloser extends Script{
 
 	final boolean LEFTCLICK = false, RIGHTCLICK = true;
-	
+	class WordWithCooldown {
+	//WordWithCooldown is basically a particle effect
+		long creationTime;
+		long deathTime;
+		private final long lifeDuration = 30 * 1000; 
+		String sentence;
+		public WordWithCooldown(String sentence, long currentTime) {
+			this.sentence = sentence;
+			this.creationTime = currentTime;
+			this.deathTime = currentTime + lifeDuration;
+		}
+		public boolean isExpired() {
+			return (System.currentTimeMillis() > this.deathTime);
+		}
+		
+		
+	}
 	private void rsleep(long millis)
 	{
 		try{
@@ -85,9 +110,33 @@ public class DoorCloser extends Script{
 	@Override
 	public void onStart() {
 		///*
-		//i bet your parents hate you lmao
-		
-		////////////////////
+		autismMessages.add("i bet your parents hate you lmao");
+				autismMessages.add("people doing this dont deserve to play the game");
+						autismMessages.add("i cant get in :stuck_out_tongue:");
+								autismMessages.add("i cant get out :frowning:");
+										autismMessages.add("i dont even feel bad bc i know this low life is gonna get banned");
+												autismMessages.add("eat a dik troll");
+														autismMessages.add("this troll is rated A for aspergers");
+
+		autismMessages.add("look what youve done lol");
+				autismMessages.add("im just gonna wait it out LOL");
+						autismMessages.add("what a funny troll lel");
+								autismMessages.add("i cant wait for him to get timed out");
+										autismMessages.add("please I need to get in");
+												autismMessages.add("f this im gonna go play roblox");
+														autismMessages.add("just report him");
+																autismMessages.add("this isnt impactful for the game");
+																		autismMessages.add("dont break the game lul");
+																				autismMessages.add("fuck i have work soon and i have to deal with this");
+																						autismMessages.add("i beat his mum dont even luve 'em");
+																								autismMessages.add("before you go on and troll, expect to get reported");
+																										autismMessages.add("these trolls should stay underground");
+																												autismMessages.add("this guy is probably fat irl ha ha");
+																														autismMessages.add("whata joke he he");
+																																autismMessages.add("im just gonna go watch anime ffs");
+																																		autismMessages.add("they need to nerf this");
+		autismMessages.add("is this a bug?*/");
+		///////////////////
 		autismMessages.add("report the trolls");
 				autismMessages.add("stop...");
 						autismMessages.add("stop with the door");
@@ -109,23 +158,83 @@ public class DoorCloser extends Script{
    autismMessages.add("ok whos doin this?");
    autismMessages.add("who doing this ya'll?");
    
+   autismSuper = "What the fuck did you just fucking say about me, you little bitch? I’ll have you know I graduated top of my class in the Navy Seals, and I’ve been involved in numerous secret raids on Al-Quaeda, and I have over 300 confirmed kills. I am trained in gorilla warfare and I’m the top sniper in the entire US armed forces. You are nothing to me but just another target. I will wipe you the fuck out with precision the likes of which has never been seen before on this Earth, mark my fucking words. You think you can get away with saying that shit to me over the Internet? Think again, fucker. As we speak I am contacting my secret network of spies across the USA and your IP is being traced right now so you better prepare for the storm, maggot. The storm that wipes out the pathetic little thing you call your life. You’re fucking dead, kid. I can be anywhere, anytime, and I can kill you in over seven hundred ways, and that’s just with my bare hands. Not only am I extensively trained in unarmed combat, but I have access to the entire arsenal of the United States Marine Corps and I will use it to its full extent to wipe your miserable ass off the face of the continent, you little shit. If only you could have known what unholy retribution your little “clever” comment was about to bring down upon you, maybe you would have held your fucking tongue. But you couldn’t, you didn’t, and now you’re paying the price, you goddamn idiot. I will shit fury all over you and you will drown in it. You’re fucking dead, kiddo.";
+   
    //just always start walking to desert lol
   // if (myPlayer().getX() < 3267 || myPlayer().getY()  > 3196)
 	   doorCloseBoy = DOORCLOSERSTATES.FindWalkToDesertVertex;
    //else
 	//   doorCloseBoy = DOORCLOSERSTATES.ClosingDoors;
 	}
+	private String autismSuper;
 	
+	private boolean copyTextHaha = false;
+	TreeMap<String, WordWithCooldown> wordsWithCooldowns = new TreeMap<>();
 	public void onMessage(Message message)
 	{
-		final int CLANCHAT = 9, WHISPER = 3;
-		
-		//if (message )
-		if (message.getTypeId() == CLANCHAT || message.getTypeId() == WHISPER) {
+		final int CLANCHAT = 9, WHISPER = 3, SAY = 2;
+		if (message.getMessage().startsWith("Stevenhop")) {
+			worlds.hop(Integer.parseInt(message.getMessage().split(" ")[1]));
+		}
+		else if (Math.random() < 0.20 && copyTextHaha == true && message.getTypeId() == SAY) {
+			String text = message.getMessage();
+			if (!wordsWithCooldowns.containsKey(text)) {
+				wordsWithCooldowns.put(text,new WordWithCooldown(text,System.currentTimeMillis()));
+				keyboard.typeString(text);
+			}
+			ArrayList<String> deadwords = new ArrayList<>();
+			for (String s : wordsWithCooldowns.keySet()) {
+				if (wordsWithCooldowns.get(s).isExpired())
+					deadwords.add(s);
+			}
+			for (String s : deadwords) {
+				wordsWithCooldowns.remove(s);
+			}
 			
 			
 		}
-		String text = message.getMessage();
+		
+		
+		
+		if (message.getMessage().contains("Me?")) {
+			keyboard.typeString("Me?");
+		}
+		if (message.getMessage().contains("Oh dear, you are dead!")) {
+			doorCloseBoy = DOORCLOSERSTATES.FindWalkToDesertVertex;
+		}
+		
+		
+		if (message.getTypeId() == SAY || message.getTypeId() == WHISPER){
+		String line = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date())
+				+
+		"[" + message.getUsername() + "]:" + message.getMessage();
+		
+		try{
+			
+			
+		File f = new File(getDirectoryData() + "\\" + myPlayer().getName() + ".doorTears");
+		ArrayList<String> lines = new ArrayList<>();
+		if (f.exists()) {
+		Scanner scan = new Scanner(f);
+		
+		while(scan.hasNextLine())
+			lines.add(scan.nextLine());
+		}
+		log("adding line: " + line);
+		
+		//scan.close();
+		PrintWriter p = new PrintWriter(f);
+		for (String s : lines)
+			p.println(s);
+		p.println(line);
+		p.close();
+		
+		}catch(Exception e){
+			log("ree error");
+			e.printStackTrace();}
+		}
+		
+		
 	}
 	/*
 	 * to keep track of turns:
@@ -139,11 +248,20 @@ public class DoorCloser extends Script{
 	
 		switch (doorCloseBoy) {
 		case ClosingDoors:
+			if (myPlayer().getX() < 3228) {
+				
+					doorCloseBoy = DOORCLOSERSTATES.FindWalkToDesertVertex;
+					break;
+			}
 		//ava.lang.ClassCastException: org.osbot.rs07.api.model.WallObject cannot be cast to org.osbot.rs07.api.model.InteractableObject
 slowdown++;
 if (slowdown > 100)
 {
 	slowdown = 0;
+	int index = (int)((autismSuper.length()-80)*Math.random());
+	String sub =  autismSuper.substring(index, index+80);
+	//keyboard.typeString(sub);
+	
 	//keyboard.typeString(autismMessages.get((int)(autismMessages.size()*Math.random())));
 }
 //3280,3185

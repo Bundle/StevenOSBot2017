@@ -54,15 +54,24 @@ public class BotStarter {
 		153,
 		154,155,156,
 		157,158,159,
-		160
+		160,165,/*166,*/167,168,
+		169,170,171,172,173,174,175,176
+		,177,
+		178,179,180,181,182,183,184,185,186,187,188,
+		189,190,191,
 	};
 	public int[] aboutToCreate = {
-			165,166
+			
 	};
 	public int[] justCreatedNeedsTutorialIsland = {
 			
 			
 			
+	};
+	public int[] doorClosers = {
+			//161,166,
+			192,
+			193,194,195,196
 	};
 	public int[] doneTutorialIslandSittingAtLumby = {
 			
@@ -219,6 +228,13 @@ public class BotStarter {
 				//if (new File("C:\\Users\\Yoloswag\\osbot\\data\\" + i + ".tutDone").exists()) {
 					name = "591";//because SDN
 					options = "1;1;1;1;1";
+					/*khal options:
+					 * randomize char
+					 * disable music
+					 * drop items
+					 * walk to G E 
+					 * logout after completion
+					 */
 						
 				//}
 				//else {
