@@ -64,7 +64,7 @@ public class BotStarter {
 			
 	};
 	public int[] justCreatedNeedsTutorialIsland = {
-			
+			197
 			
 			
 	};

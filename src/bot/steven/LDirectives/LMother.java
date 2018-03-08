@@ -85,8 +85,8 @@ public class LMother {
 			case waitForTut:
 				//TODO: when it is done with tutorial, end the .jar process. this is a major flaw.
 				
-				//TODO: need to TIME khal tut island
-				final long TIME = 8;
+				//KHAL TUTORIAL ISLAND takes 8 minutes 40 seconds about
+				final long TIME = 10;
 				if (System.currentTimeMillis() - tutBegin > 
 						TIME * 60 * 1000) {
 					watcherState = WatcherStates.runLBot;
@@ -188,6 +188,7 @@ public class LMother {
 		boynumber.setPreferredSize(new Dimension(200,100));
 		
 		jta.setPreferredSize(new Dimension(400,400));
+		jta.append("Starting Burk btw..." + "\r\n");
 		
 		final JButton b = new JButton("add boy");
 		b.setPreferredSize(new Dimension(200,100));
@@ -274,5 +275,6 @@ public class LMother {
 			+ "-login gangsthurh:s0134201342 -bot "
 			+ "stevenfakeaccountemail121@gmail.com:"
 			+ "0134201342:1234"
-			+ " -script " + "LBurk" + ":" + "1234";
+			+ " -script " + "LBurk" + ":" + "1234"
+			+ " -allow norandoms";
 }
