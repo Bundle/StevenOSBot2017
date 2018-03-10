@@ -3,10 +3,10 @@ package JustLogin;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 
+import org.osbot.rs07.input.mouse.BotMouseListener;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 
@@ -55,19 +55,21 @@ public class JustLogin extends Script{
 		stevenbuttons.add(b);
 		stevenbuttons.add(b2);
 		stevenbuttons.add(b3);
-		bot.addMouseListener(new MouseListener() {
+		bot.addMouseListener(new BotMouseListener() {
 			//TODO: ADD IN THE BUTTONS Cx
-			@Override
-			public void mouseClicked(MouseEvent arg0) {
-
+			public void checkMouseEvent(MouseEvent e) {
 				
-				for (StevenButton b : stevenbuttons) {
-					if (new Rectangle2D.Double(b.x,b.y,b.width,b.height).contains(arg0.getX(),arg0.getY())){
-						b.onStevenClick();
-						b.pressed = !b.pressed;
+				if (e.getID() == MouseEvent.MOUSE_PRESSED) {
+					for (StevenButton b : stevenbuttons) {
+						if (new Rectangle2D.Double(b.x,b.y,b.width,b.height).contains(e.getX(),e.getY())){
+							b.onStevenClick();
+							b.pressed = !b.pressed;
+						}
 					}
 				}
+				
 			}
+		
 
 			@Override
 			public void mouseEntered(MouseEvent arg0) {
@@ -80,17 +82,9 @@ public class JustLogin extends Script{
 				
 			}
 
-			@Override
-			public void mousePressed(MouseEvent arg0) {
-				
-				
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent arg0) {
-				
-			}
 			
+
+		
 			
 			
 		});
