@@ -2,16 +2,22 @@ package bot.steven.LDirectives;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Scanner;
+import java.util.TreeMap;
 
+import org.osbot.rs07.api.Bank;
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
+import org.osbot.rs07.api.model.Player;
 import org.osbot.rs07.api.model.RS2Object;
 import org.osbot.rs07.api.model.WallObject;
+import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 @ScriptManifest(author = "Steven Ventura", info = "LBurk head", logo = "", name = "LBurk", version = 0)
 public class LBot extends Script{
 	
+	final static double K = 1000;
 	enum STATEMACHINE {
 		locationcheck,
 		traveltogefromspawn1,traveltogefromspawn2,
@@ -19,6 +25,7 @@ public class LBot extends Script{
 		returntoge1,gotodesert1,returntoge2,gotodesert2,tanhides1,tanhides2,tanhides3,completetradecoins,
 		requestburktakehides,waitfortradehides,completetradehides,
 		auditbank,buycowhides,logoutretire,
+		notefinishedhidesfrombank,
 		requesttutorial
 	};
 	STATEMACHINE state;
@@ -60,12 +67,13 @@ public class LBot extends Script{
 	}
 	
 	public void onStart() {
+		fetchMarketPrices();
 		state = STATEMACHINE.locationcheck;
 	}
 	final boolean LEFTCLICK=false,RIGHTCLICK=true;
 	private void click(int x, int y)
 	{
-		mouse.move(x,y);
+		mouse.move(x+(int)(3*Math.random()),y+(int)(3*Math.random()));
 		mouse.click(LEFTCLICK);
 	}
 	private void openTannerDoor() {
@@ -80,6 +88,7 @@ public class LBot extends Script{
 			}catch(Exception e){}
 		}
 	}
+	long lastfiletime = 0;
 	@Override
 	public int onLoop() throws InterruptedException {
 		switch(state) {
@@ -196,8 +205,29 @@ if (iLUMBRIDGETOGE == LUMBRIDGETOGE.length) {
 		}
 			break;
 		case requestburkgivecoins:
+			
+			lastfiletime = System.currentTimeMillis();
+			try{
+				File f = new File(getDirectoryData() + "\\" + System.currentTimeMillis() + ".coinRequest");
+				log("creating file " + getDirectoryData() + "\\" + System.currentTimeMillis() + ".coinRequest");
+			PrintWriter out = new PrintWriter(f);
+			out.println(myPlayer().getName());
+			out.close();
+			}catch(Exception e){log("file error :3c");}
+			
+			state = STATEMACHINE.waitfortradecoins;
+			
 			break;
 		case waitfortradecoins:
+			if (tradeFlag) {
+				//wait for trade variable to be flipped
+				state = STATEMACHINE.completetradecoins;
+			}
+			else if (System.currentTimeMillis() - lastfiletime > 15*K) {
+				//its been 15 seconds, try again
+				state = STATEMACHINE.requestburkgivecoins;
+			}
+			
 			break;
 		case returntoge1:
 		{
@@ -329,18 +359,246 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 			state = STATEMACHINE.tanhides1;
 			break;
 		case completetradecoins:
+			//get the coins from him
+			
+			//make sure i am not already trading.
+			if ((widgets.get(334,13) == null || widgets.get(334,13).isVisible() == false)
+					&&
+					(widgets.get(335,25) == null || widgets.get(335,25).isVisible() == false))
+			for (Player p : getPlayers().getAll()) {
+				if (p.getName().equals("LordBurk")) {
+					p.interact("Trade");
+					rsleep(1500);
+					break;
+				}
+			}
+			
+			
+			//trade screen 1 widget is 335,25
+			//trade screen 2 widget is 334,13
+			if  ((widgets.get(334,13) != null && widgets.get(334,13).isVisible())
+					|| WaitForWidget(335,25)) {
+				//wait for him to put the coins in
+				rsleep(2000);
+				//press accept
+				click(264,180);
+				//wait for him to accept
+				if (WaitForWidget(334,13)) {
+				//press accept again
+				click(215,303);
+				//successful trade!
+				state = STATEMACHINE.buycowhides;
+				
+				}
+			}
+			
+			
+			
+			break;
+		case notefinishedhidesfrombank:
+			while (!bank.isOpen()) {
+				bank.open();
+			}
+			
+			bank.depositAll();
+			rsleep(1500);
+			bank.enableMode(Bank.BankMode.WITHDRAW_NOTE);
+			bank.withdrawAll("Leather");
+			
+			if (inventory.getItems()[0] != null &&
+					inventory.getItems()[0].getName().equals("Leather"))
+			{
+				if (bank.isOpen())
+					bank.close();
+				
+				state = STATEMACHINE.requestburktakehides;
+				
+			}
+			
+			
+			
 			break;
 		case requestburktakehides:
+			
+			lastfiletime = System.currentTimeMillis();
+			try{
+				File f = new File(getDirectoryData() + "\\" + System.currentTimeMillis() + ".leatherTake");
+				log("creating file " + getDirectoryData() + "\\" + System.currentTimeMillis() + ".leatherTake");
+			PrintWriter out = new PrintWriter(f);
+			out.println(myPlayer().getName());
+			out.close();
+			}catch(Exception e){log("file error :3c");}
+			
+			state = STATEMACHINE.waitfortradehides;
+			
 			break;
 		case waitfortradehides:
+			if (tradeFlag) {
+				//wait for trade variable to be flipped
+				state = STATEMACHINE.completetradehides;
+			}
+			else if (System.currentTimeMillis() - lastfiletime > 15*K) {
+				//its been 15 seconds, try again
+				state = STATEMACHINE.requestburktakehides;
+			}
 			break;
 		case completetradehides:
+
+
+			//make sure i am not already trading.
+			if ((widgets.get(334,13) == null || widgets.get(334,13).isVisible() == false)
+					&&
+					(widgets.get(335,25) == null || widgets.get(335,25).isVisible() == false))
+			for (Player p : getPlayers().getAll()) {
+				if (p.getName().equals("LordBurk")) {
+					p.interact("Trade");
+					rsleep(1500);
+					break;
+				}
+			}
+			
+			//trade screen 1 widget is 335,25
+			//trade screen 2 widget is 334,13
+		if  ((widgets.get(334,13) != null && widgets.get(334,13).isVisible())
+				|| WaitForWidget(335,25)) {
+			//put the hides in
+			inventory.getItems()[0].interact("Offer-All");
+			//press accept
+			click(264,180);
+			//wait for him to accept
+			if (WaitForWidget(334,13)) {
+			//press accept again
+			click(215,303);
+			//successful trade!
+			state = STATEMACHINE.logoutretire;
+			
+			}
+		}
 			break;
 		case auditbank:
+			while(!bank.isOpen())
+			{
+				bank.open();
+			}
+			
+			if (bank.getAmount("Coins") + inventory.getAmount("Coins") > 30*K)
+			{
+				state = STATEMACHINE.buycowhides;
+				
+				
+			}
+			else if (bank.getAmount("Leather") + inventory.getAmount("Leather") > 0)
+			{
+				state = STATEMACHINE.notefinishedhidesfrombank;
+				tradeFlag = false;
+				
+			}
+			else if (bank.getAmount("Cowhide") + inventory.getAmount("Cowhide") > 0)
+			{
+				state = STATEMACHINE.gotodesert1;
+				
+				
+			}
+			else
+			{
+				state = STATEMACHINE.requestburkgivecoins;
+				tradeFlag = false;
+				
+			}
+			
+			if (bank.isOpen()) {
+				bank.close();
+			}
+			
+			
+			
 			break;
 		case buycowhides:
+			
+			
+			String itemName = "Leather";
+			
+			
+			
+			
+			while (!bank.isOpen()) {
+				bank.open();
+				rsleep(1000);
+			}
+			if (inventory.getItems()[0] != null && inventory.getItems()[0].getName().equals("Coins")) {
+				
+			}
+			else
+			{
+				bank.depositAll();
+				rsleep(1000);
+				bank.withdrawAll("Coins");
+				
+			}
+			rsleep(1000);
+			
+			Entity clerk = npcs.closest("Grand Exchange Clerk");
+			if (clerk != null)
+				clerk.interact("Exchange");
+			
+			
+			//click collect button btw
+			rsleep(1500);
+			click(456,64);
+			
+			
+			if (WaitForWidget(465,7,3)) {//create buy offer widget 
+				
+				click(456,64);
+				rsleep(800);
+				click(59,145);
+				if (WaitForWidget(465,24,21)) {
+					click(113,117);
+					rsleep(1500);
+					keyboard.typeString(itemName);
+					if (WaitForWidget(162,39,2)) {
+				if (widgets.get(162,39,1).getMessage().contains(itemName)) {
+					click(34,388);
+					rsleep(3000);
+					click(386,205);
+					if (WaitForWidget(162,34)) {
+						rsleep(1500);
+						keyboard.typeString(""+(int)(getMarketPrice(itemName)*1.11)); 
+						rsleep(3000);
+						//click on amount to buy ...
+						click(233,209);
+						rsleep(3000);
+						//type in amount to buy
+						keyboard.typeString(""+getLeatherAmountToBuy());
+						rsleep(1500);
+						
+						click(260,287);//click confirm
+						//wait for collect button to appear
+						if (WaitForWidget(465,6,1))
+						{
+							click(456,64);
+						}
+						
+						state = STATEMACHINE.auditbank;
+						}
+					}
+					}
+					
+				}
+				
+			}
+			
+			
+			
 			break;
 		case logoutretire:
+			try{
+			File f = new File(getDirectoryData() + "\\" + getParameters() + ".LRetire");
+			log("creating file " + getDirectoryData() + "\\" + getParameters() + ".LRetire");
+		PrintWriter out = new PrintWriter(f);
+		out.println(myPlayer().getName());
+		out.close();
+			}catch(Exception e){e.printStackTrace();}
 			break;
 		
 				
@@ -352,7 +610,48 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 		
 		return 50 + (int)(Math.random()*50);
 	}
+	public TreeMap<String,Integer> marketPrices;
+	private void fetchMarketPrices() {
+		marketPrices = new TreeMap<>();
+		try{
+			Scanner scan = new Scanner(new File(getDirectoryData() + "\\market.prices"));
+			while(scan.hasNextLine()) {
+				//format literal:
+				//name=price
+				String line = scan.nextLine();
+				String name = line.substring(0, line.indexOf("="));
+				int price = Integer.parseInt(line.substring(line.indexOf("=")+1));
+				marketPrices.put(name,price);
+			}
+			scan.close();
+		}catch(Exception e){log("unable to find market.prices file");};
+	}
+	public int getMarketPrice(String itemName) {
+		return marketPrices.get(itemName);
+		
+		
+	}
+	private long getLeatherAmountToBuy() {
+		long coins = inventory.getAmount("Coins");
+		long spending = coins - (int)(13*K);
+		
+		return spending / (int)((getMarketPrice("Leather")*1.11));
+		
+		
+		
+		
+	}
 	
+	volatile boolean tradeFlag = false;
+	public void onMessage(Message message)
+	{
+	String text = message.getMessage();
+	if (text.contains("Lord") && text.contains("wishes to trade with you.")) {
+		log("tradeFlag has been raised");
+		tradeFlag = true;
+	}
+	
+	}
 	
 	
 	/*
@@ -375,8 +674,7 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 	int[][] GETODESERT = {{3164, 3483},{3164, 3475},{3164, 3469},{3164, 3464},{3168, 3460},{3172, 3454},{3175, 3447},{3175, 3439},{3175, 3434},{3175, 3432},{3172, 3424},{3172, 3418},{3172, 3411},{3172, 3405},{3173, 3397},{3173, 3391},{3176, 3385},{3183, 3379},{3189, 3372},{3191, 3370},{3191, 3368},{3193, 3364},{3198, 3361},{3204, 3356},{3207, 3353},{3210, 3354},{3218, 3354},{3224, 3352},{3224, 3343},{3227, 3339},{3232, 3337},{3237, 3337},{3241, 3337},{3245, 3337},{3249, 3336},{3252, 3334},{3259, 3334},{3262, 3332},{3265, 3332},{3271, 3331},{3276, 3331},{3279, 3329},{3275, 3322},{3272, 3319},{3272, 3314},{3272, 3307},{3272, 3302},{3271, 3297},{3271, 3292},{3271, 3286},{3270, 3282},{3270, 3276},{3270, 3270},{3270, 3264},{3270, 3258},{3270, 3250},{3270, 3246},{3270, 3241},{3270, 3230},{3270, 3222},{3271, 3217},{3271, 3211},{3271, 3205},{3272, 3199},{3278, 3195},{3280, 3185},{3277, 3182},{3277, 3176},{3276, 3170},{3273, 3167},
 	};
 	int iGOTODESERT = -1;
-
-
+	
 
 
 }
