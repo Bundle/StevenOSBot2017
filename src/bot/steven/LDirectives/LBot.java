@@ -304,6 +304,9 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 				inventory.getItems()[1].interact("Deposit All");
 			}
 			
+			if (bank.isBankModeEnabled(Bank.BankMode.WITHDRAW_NOTE)) {
+			bank.enableMode(Bank.BankMode.WITHDRAW_ITEM);
+			}
 			rsleep(600);
 			bank.withdrawAll("Cowhide");
 			
@@ -402,7 +405,11 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 			
 			bank.depositAll();
 			rsleep(1500);
-			bank.enableMode(Bank.BankMode.WITHDRAW_NOTE);
+			if (bank.isBankModeEnabled(Bank.BankMode.WITHDRAW_ITEM)) {
+				bank.enableMode(Bank.BankMode.WITHDRAW_NOTE);
+				rsleep(500);
+				}
+			
 			bank.withdrawAll("Leather");
 			
 			if (inventory.getItems()[0] != null &&

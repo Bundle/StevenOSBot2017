@@ -5,6 +5,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -12,6 +13,10 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 public class LMother {
 
@@ -223,11 +228,18 @@ public class LMother {
 		
 		
 		long CT=System.currentTimeMillis(),LT=System.currentTimeMillis();
+		long LTprices = 0;
 		while(true) {
 			rsleep(2000);
 			CT=System.currentTimeMillis();
 			for (LBotWatcher L : LBotWatchers) {
 				L.tic(CT - LT);
+			}
+			
+			if (CT-LTprices > 15*60*1000)
+			{
+				LTprices = CT;
+				writepricesfile();
 			}
 			
 			//tic the lbotwatchers
@@ -238,6 +250,37 @@ public class LMother {
 		
 		
 		
+		
+	}
+	private static String lookupPriceString(String name) {
+		
+		return name + "=" + lookupPrice(name) + "\r\n";
+		
+	}
+	private static int lookupPrice(String name) {
+	    try {
+	        Document doc = Jsoup.connect("http://2007.runescape.wikia.com/wiki/Exchange:" + name.replaceAll(" ", "_")).get();
+	        
+	        Element price = doc.getElementById("GEPrice");
+	        return Integer.parseInt(price.text().replaceAll(",", ""));
+	    } catch (Exception e) {}
+	    return 0;
+	}
+	
+	private void writepricesfile() {
+		System.out.println("writing prices file");
+		try{File f = new File("C:\\Users\\Yoloswag\\OSBot\\Data\\market.prices");
+		PrintWriter p = new PrintWriter(f);
+		p.write(lookupPriceString("Cowhide"));
+		p.write(lookupPriceString("Leather"));
+		p.write(lookupPriceString("Green_dragonhide"));
+		p.write(lookupPriceString("Energy potion(4)"));
+		p.write(lookupPriceString("Green dragon leather"));
+		p.write(lookupPriceString("Amulet of glory(6)"));
+		p.write(lookupPriceString("Ring of wealth (5)"));
+		p.close();
+		
+		}catch(Exception e){e.printStackTrace();}
 		
 	}
 	public static void main(String[]args) {
