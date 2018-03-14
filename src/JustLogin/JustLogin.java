@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 import org.osbot.rs07.input.mouse.BotMouseListener;
@@ -133,7 +135,338 @@ public class JustLogin extends Script{
 		return 1000;
 	}
 
-	
+	public static void main(String[]args) {
+		final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
+				+ "OSBot 2.5.2.jar\" "
+				+ "-login gangsthurh:s0134201342 -bot "
+				+ "aaaaa@aaaaa.com:"
+				+ "1234:1234"
+				+ " -script " + "1" + ":" + "2";
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		class getrunnerboy {
+			//example processnamecriteria="java.exe"
+			String processnamecriteria;
+			public getrunnerboy(String processname) {
+				this.processnamecriteria = processname;
+			}
+			ArrayList<Integer> pidlist;
+			public ArrayList<Integer> getList() {
+				return pidlist;
+			}
+			
+			
+			
+			public void populatepidlist() {
+				try{
+				 String line;
+				    Process p = Runtime.getRuntime().exec
+				    	    (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
+				    BufferedReader input =
+				            new BufferedReader(new InputStreamReader(p.getInputStream()));
+				    int linecount = 0;
+				    while ((line = input.readLine()) != null) {
+				    	linecount++;
+				    	if (linecount >= 4) {String[] split = line.split(" ");
+				    	
+				    	
+				    	
+				    	int pid = 0; String pname = "";
+				    	boolean secondlinebtw = false;
+				        for (int i = 0; i < split.length; i++){
+				        	if (secondlinebtw && pname.equals(processnamecriteria) && split[i].equals("") == false){
+					        	secondlinebtw=false;
+					        	System.out.println(line);
+					        	pid = Integer.parseInt(split[i]);
+					        	
+					        	}
+				        	if (i == 0) {
+				        		secondlinebtw=true;
+				        		pname = split[i];
+				        	}
+				        	
+				        	
+				        	
+				        }
+				        
+				        if (pname.equals(processnamecriteria)) {
+				        	pidlist.add(pid);
+				        }
+				        
+				      
+				    }}
+				    input.close();
+				} catch (Exception err) {
+				    err.printStackTrace();
+				}
+				
+			}
+			
+			//should be used as p2.extraProcesses(p1)
+			public ArrayList<Integer> extraProcesses(getrunnerboy other) {
+				ArrayList<Integer> out = new ArrayList<>();
+				//returns: this object has X more objects than "other" object
+				for (int i = 0; i < pidlist.size(); i++) {
+					boolean notfound = true;
+					for (int c = 0; c < other.pidlist.size(); c++) {
+						if (pidlist.get(i) == other.pidlist.get(c))
+							notfound = false;
+					}
+					if (notfound)
+						out.add(pidlist.get(i));
+				}
+				return out;
+				
+				
+				
+			}
+		}
+		
+		getrunnerboy g = new getrunnerboy("java.exe");
+		g.populatepidlist();
+		try{
+		final Runtime rt = Runtime.getRuntime();
+		Process pr = rt.exec(command);
+		Thread.sleep(5);
+		}catch(Exception e){};
+		getrunnerboy g2 = new getrunnerboy("java.exe");
+		g2.populatepidlist();
+		
+		ArrayList<Integer> newProcesses = g2.extraProcesses(g);
+		
+		
+		/*
+		class pls{
+			public String name;
+			public int pid;
+			public pls(String name, int pid) {
+				this.name=name;this.pid=pid;
+			}
+		}
+		
+		final ArrayList<pls> please = new ArrayList<>();
+		
+		final ArrayList<pls> please2 = new ArrayList<>();
+		
+		
+		final Runtime rt = Runtime.getRuntime();
+		new Thread() {
+			public void run() {
+		try{
+		
+		//	/
+		//	  get a list of all javaw.exe processes beforehand, then compare it afterwards
+			 //
+			
+			try {
+			    String line;
+			    Process p = Runtime.getRuntime().exec
+			    	    (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
+			    BufferedReader input =
+			            new BufferedReader(new InputStreamReader(p.getInputStream()));
+			    int linecount = 0;
+			    while ((line = input.readLine()) != null) {
+			    	linecount++;
+			    	if (linecount >= 4) {String[] split = line.split(" ");
+			    	
+			    	
+			    	
+			    	int pid = 0; String pname = "";
+			    	boolean secondlinebtw = false;
+			        for (int i = 0; i < split.length; i++){
+			        	if (secondlinebtw && pname.equals("java.exe") && split[i].equals("") == false){
+				        	secondlinebtw=false;
+				        	System.out.println(line);
+				        	pid = Integer.parseInt(split[i]);
+				        	
+				        	}
+			        	if (i == 0) {
+			        		secondlinebtw=true;
+			        		pname = split[i];
+			        	}
+			        	
+			        	
+			        	
+			        }
+			        
+			        if (pname.equals("java.exe")) {
+			        	please.add(new pls(pname,pid));
+			        }
+			        
+			      
+			    }}
+			    input.close();
+			} catch (Exception err) {
+			    err.printStackTrace();
+			}
+			
+			
+			Process pr = rt.exec(command);
+		
+		
+		for (int i=9;i>=1;i--){
+		Thread.sleep(1000);
+			System.out.println(i);
+		}
+	//
+	//	  pr is the cmd.exe file.
+		 //
+		
+		
+		
+		try {
+		    String line;
+		    Process p = Runtime.getRuntime().exec
+		    	    (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
+		    BufferedReader input =
+		            new BufferedReader(new InputStreamReader(p.getInputStream()));
+		    int linecount = 0;
+		    while ((line = input.readLine()) != null) {
+		    	linecount++;
+		    	if (linecount >= 4) {String[] split = line.split(" ");
+		    	
+		    	
+		    	
+		    	int pid = 0; String pname = "";
+		    	boolean secondlinebtw = false;
+		        for (int i = 0; i < split.length; i++){
+		        	if (secondlinebtw && pname.equals("java.exe") && split[i].equals("") == false){
+			        	secondlinebtw=false;
+			        	System.out.println(line);
+			        	pid = Integer.parseInt(split[i]);
+			        	
+			        	}
+		        	if (i == 0) {
+		        		secondlinebtw=true;
+		        		pname = split[i];
+		        	}
+		        	
+		        	
+		        	
+		        }
+		        
+		        if (pname.equals("java.exe")) {
+		        	please2.add(new pls(pname,pid));
+		        }
+		        
+		      
+		    }}
+		    input.close();
+		} catch (Exception err) {
+		    err.printStackTrace();
+		}
+		
+		
+		//find the different value
+				for (int i2 = 0; i2 < please2.size(); i2++){
+					int pid = please2.get(i2).pid;
+					boolean missing = true;
+					for (int i1=0;i1<please.size();i1++) {
+						if (please.get(i1).pid == pid){
+							missing = false;
+						}
+						
+						
+						
+					}
+					if (missing == true)
+						System.out.println("the new processid is " + pid);
+				}
+				
+				System.out.println("1111111111");
+				for (int i = 0; i < please.size(); i++){
+					System.out.println(please.get(i).pid);
+				}
+				
+				System.out.println("222222222");
+				for (int c = 0; c < please2.size(); c++) {
+					System.out.println(please2.get(c).pid);
+				}
+				
+		
+		
+		}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
+		
+		}}.start();
+		
+		
+		
+		
+		
+		
+		
+		*/
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	}
 	
 	
 }

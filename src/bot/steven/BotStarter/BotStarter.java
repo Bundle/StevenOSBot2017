@@ -64,7 +64,8 @@ public class BotStarter {
 			
 	};
 	public int[] justCreatedNeedsTutorialIsland = {
-			197
+			
+			200,201,202,203
 			
 			
 	};
@@ -77,7 +78,7 @@ public class BotStarter {
 			
 			//161,162,163,164 these 4 are unbanned February for leather reserved. testing.
 			
-			
+			197,
 			
 			
 			

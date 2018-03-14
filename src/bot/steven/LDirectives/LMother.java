@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.Scanner;
 
 import javax.swing.JButton;
@@ -46,7 +47,7 @@ public class LMother {
 	private void addLBot(int number) {
 		
 		
-		jta.append("starting LBot on " + number);
+		jta.append("starting LBot on " + number + "\r\n");
 		////////////
 		
 		/////////////
@@ -144,7 +145,7 @@ public class LMother {
 					if (name.startsWith(""+number) && name.endsWith(".tutorialRequest")) {
 						try{
 					Scanner scan = new Scanner(f);
-					long ms = System.currentTimeMillis() - Integer.parseInt(scan.nextLine());
+					long ms = System.currentTimeMillis() - Long.parseLong(scan.nextLine());
 					scan.close();
 					//file must be created within the past 10 seconds
 					if (ms < 10 * 1000) {
@@ -232,9 +233,11 @@ public class LMother {
 		while(true) {
 			rsleep(2000);
 			CT=System.currentTimeMillis();
+			try{
 			for (LBotWatcher L : LBotWatchers) {
 				L.tic(CT - LT);
 			}
+			}catch(ConcurrentModificationException cme) { };
 			
 			if (CT-LTprices > 15*60*1000)
 			{

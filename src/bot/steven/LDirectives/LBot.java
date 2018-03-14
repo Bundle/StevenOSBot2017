@@ -1,5 +1,7 @@
 package bot.steven.LDirectives;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.Scanner;
@@ -14,7 +16,7 @@ import org.osbot.rs07.api.model.WallObject;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
-@ScriptManifest(author = "Steven Ventura", info = "LBurk head", logo = "", name = "LBurk", version = 0)
+@ScriptManifest(author = "Steven Ventura", info = "LBot", logo = "", name = "LBot", version = 0)
 public class LBot extends Script{
 	
 	final static double K = 1000;
@@ -22,7 +24,7 @@ public class LBot extends Script{
 		locationcheck,
 		traveltogefromspawn1,traveltogefromspawn2,
 		requestburkgivecoins,waitfortradecoins,
-		returntoge1,gotodesert1,returntoge2,gotodesert2,tanhides1,tanhides2,tanhides3,completetradecoins,
+		returntoge1,gotodesert1,returntoge2,gotodesert2,tanhides1,tanhides2,tanhides3,tanhides4,completetradecoins,
 		requestburktakehides,waitfortradehides,completetradehides,
 		auditbank,buycowhides,logoutretire,
 		notefinishedhidesfrombank,
@@ -36,6 +38,22 @@ public class LBot extends Script{
 			rsleep(500);
 		}
 	}
+	public void onPaint(Graphics2D g) {
+		
+		
+		
+		g.setPaint(Color.CYAN);
+		
+		g.drawString("LBot # " + getParameters(),10,60);
+			g.drawString("LBot:state=" + state,10,40);
+		/*g.drawString("extra pots:" + getExtraPotAmount(),10,80);
+		g.drawString("Left=" + hideAmountLeft + ",Done=" + hideAmountDone, 10,100);
+		g.drawString("TimeLeft=" + reee((int)(hideAmountLeft/26*36)),10,120);
+		*/
+		
+		g.setPaint(Color.BLACK);
+	}
+	
 	private void rsleep(long millis)
 	{
 		try{
@@ -205,7 +223,8 @@ if (iLUMBRIDGETOGE == LUMBRIDGETOGE.length) {
 		}
 			break;
 		case requestburkgivecoins:
-			
+			//rendevooooooooooooooooo
+			walking.walk(new Position(3169,3482,0));
 			lastfiletime = System.currentTimeMillis();
 			try{
 				File f = new File(getDirectoryData() + "\\" + System.currentTimeMillis() + ".coinRequest");
@@ -272,14 +291,7 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 			break;
 		case tanhides1:
 		{
-			openTannerDoor();
-			walking.walk(new Position(3278,3179,0));
-			rsleep(500);
-			walking.walk(new Position(3278,3179,0));
-			while(myPlayer().isAnimating() || myPlayer().isMoving())
-			{
-				rsleep(150);
-			}
+			
 			
 			
 			
@@ -288,12 +300,14 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 				rsleep(500);
 				}
 			
-			if (bank.getAmount("Cowhide") == 0) {
+			if (bank.getAmount("Cowhide") + inventory.getAmount("Cowhide") == 0) {
 				state = STATEMACHINE.returntoge1;
 				break;
 			}
 			
 			rsleep(100);
+			
+
 			
 			if (inventory.getItems()[0] == null || !inventory.getItems()[0].getName().equals("Coins")) {
 				bank.depositAll();
@@ -301,8 +315,9 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 				bank.withdrawAll("Coins");
 			}
 			else if (inventory.getItems()[1] != null){
-				inventory.getItems()[1].interact("Deposit All");
+				inventory.getItems()[1].interact("Deposit-All");
 			}
+			
 			
 			if (bank.isBankModeEnabled(Bank.BankMode.WITHDRAW_NOTE)) {
 			bank.enableMode(Bank.BankMode.WITHDRAW_ITEM);
@@ -350,7 +365,7 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 			}
 			
 			//TODO: waitforwidget tanner
-			WaitForWidget(324,153);
+			WaitForWidget(324,1);
 			if (widgets.get(324,1) != null && widgets.get(324,1).isVisible())
 			{
 			widgets.get(324,1).interact("Tan All");
@@ -359,7 +374,32 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 			}
 			
 			openTannerDoor();
-			state = STATEMACHINE.tanhides1;
+			if (!(inventory.getItems()[1] != null &&
+					inventory.getItems()[1].getName().equals("Cowhide"))){
+			state = STATEMACHINE.tanhides4;
+			}
+			break;
+		case tanhides4:
+			double pls2 = 
+			Math.sqrt(Math.pow(myPlayer().getX()-3278,2) + 
+					Math.pow(myPlayer().getY()-3179,2));
+			
+	if (pls2 < 4)
+	{
+		state = STATEMACHINE.tanhides1;
+	}
+	else
+	{
+			openTannerDoor();
+			walking.walk(new Position(3278,3179,0));
+			rsleep(500);
+			walking.walk(new Position(3278,3179,0));
+			while(myPlayer().isAnimating() || myPlayer().isMoving())
+			{
+				rsleep(150);
+			}
+	}
+			
 			break;
 		case completetradecoins:
 			//get the coins from him
@@ -370,7 +410,7 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 					(widgets.get(335,25) == null || widgets.get(335,25).isVisible() == false))
 			for (Player p : getPlayers().getAll()) {
 				if (p.getName().equals("LordBurk")) {
-					p.interact("Trade");
+					p.interact("Trade with");
 					rsleep(1500);
 					break;
 				}
@@ -426,7 +466,8 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 			
 			break;
 		case requestburktakehides:
-			
+			//rendevooooooooooooooooo
+			walking.walk(new Position(3169,3482,0));
 			lastfiletime = System.currentTimeMillis();
 			try{
 				File f = new File(getDirectoryData() + "\\" + System.currentTimeMillis() + ".leatherTake");
@@ -458,7 +499,7 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 					(widgets.get(335,25) == null || widgets.get(335,25).isVisible() == false))
 			for (Player p : getPlayers().getAll()) {
 				if (p.getName().equals("LordBurk")) {
-					p.interact("Trade");
+					p.interact("Trade with");
 					rsleep(1500);
 					break;
 				}
@@ -523,7 +564,7 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 		case buycowhides:
 			
 			
-			String itemName = "Leather";
+			String itemName = "Cowhide";
 			
 			
 			
@@ -563,12 +604,14 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 					click(113,117);
 					rsleep(1500);
 					keyboard.typeString(itemName);
-					if (WaitForWidget(162,39,2)) {
-				if (widgets.get(162,39,1).getMessage().contains(itemName)) {
-					click(34,388);
+					if (WaitForWidget(162,41,1)) {
+				if (widgets.get(162,41,1).getMessage().equals(itemName)) {
+					//click on item
+					click(85,383);
 					rsleep(3000);
+					//click on price dots
 					click(386,205);
-					if (WaitForWidget(162,34)) {
+					if (WaitForWidget(162,36)) {
 						rsleep(1500);
 						keyboard.typeString(""+(int)(getMarketPrice(itemName)*1.11)); 
 						rsleep(3000);
@@ -642,7 +685,7 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 		long coins = inventory.getAmount("Coins");
 		long spending = coins - (int)(13*K);
 		
-		return spending / (int)((getMarketPrice("Leather")*1.11));
+		return spending / (int)((getMarketPrice("Cowhide")*1.11));
 		
 		
 		

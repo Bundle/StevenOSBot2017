@@ -1,5 +1,7 @@
 package bot.steven.LDirectives;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.io.File;
 import java.util.Scanner;
 
@@ -170,6 +172,40 @@ public class LBurk extends Script{
 		
 	}
 	
+	
+	/*
+	enum MASTER {scanning, coingive, leathertake};
+	MASTER master;
+	enum SCANNING {scanning, loggingOut};
+	SCANNING scanning;
+	enum COINGIVE {login,getcoinsfrombank,sendtrade,gothroughwithtrade,returntoscanning};
+	COINGIVE coingive;
+	enum LEATHERTAKE {login,
+		emptybags,sendtrade,gothroughwithtrade,openge,sellleather,collectprofit,returntoscanning
+	};*/
+	
+	public void onPaint(Graphics2D g)
+	{
+		
+		
+		g.setPaint(Color.CYAN);
+		if (master == MASTER.scanning) 
+			g.drawString("LBurk: interrupt: " + scanning,10,60);
+		if (master == MASTER.coingive) 
+			g.drawString("LBurk: interrupt: " + coingive,10,60);
+		if (master == MASTER.leathertake) 
+			g.drawString("LBurk: interrupt: " + leathertake,10,60);
+		
+			g.drawString("LBurk:master=" + master,10,40);
+		/*g.drawString("extra pots:" + getExtraPotAmount(),10,80);
+		g.drawString("Left=" + hideAmountLeft + ",Done=" + hideAmountDone, 10,100);
+		g.drawString("TimeLeft=" + reee((int)(hideAmountLeft/26*36)),10,120);
+		*/
+		
+		g.setPaint(Color.BLACK);
+		
+		
+	}
 	/*enum COINGIVE {login,getcoinsfrombank,sendtrade,gothroughwithtrade,returntoscanning};
 	COINGIVE coingive;
 	
@@ -178,7 +214,7 @@ public class LBurk extends Script{
 	private LoginEvent loginEvent;
 	private void coinStateMachine() {
 		//TODO
-		log("log in pls");
+		
 		switch (coingive) {
 		case login:
 			
@@ -194,17 +230,22 @@ public class LBurk extends Script{
 	        
 			break;
 		case getcoinsfrombank:
+			try{
+			while (!bank.isOpen()) {
+				bank.open();
+			}}catch(Exception e){};
 			bank.depositAll();
 			rsleep(1000);
+			final int cashamount =666666 / 6; 
 			//money
-			bank.withdraw("Coins",666666);
+			bank.withdraw("Coins",cashamount);
 			rsleep(1000);
 			if (bank.isOpen()) {
 				bank.close();
 			}
 			if (inventory.getItems()[0] != null &&
 					inventory.getItems()[0].nameContains("Coins")
-					&& inventory.getItems()[0].getAmount() == 666666) {
+					&& inventory.getItems()[0].getAmount() == cashamount) {
 				coingive = COINGIVE.sendtrade;
 				break;
 			}
@@ -213,7 +254,7 @@ public class LBurk extends Script{
 			
 			for (Player p : getPlayers().getAll()) {
 				if (p.getName().equals(interactName)) {
-					p.interact("Trade");
+					p.interact("Trade with");
 					log("Sending trade to " + p.getName());
 					coingive = COINGIVE.gothroughwithtrade;
 					rsleep(1500);
@@ -310,7 +351,7 @@ public class LBurk extends Script{
 		case sendtrade:
 			for (Player p : getPlayers().getAll()) {
 				if (p.getName().equals(interactName)) {
-					p.interact("Trade");
+					p.interact("Trade with");
 					log("Sending trade to " + p.getName());
 					coingive = COINGIVE.gothroughwithtrade;
 					rsleep(1500);
