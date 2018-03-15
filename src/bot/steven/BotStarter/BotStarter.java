@@ -69,6 +69,10 @@ public class BotStarter {
 			
 			
 	};
+	public int[] LBots = {
+		197,198,199,200	
+			
+	};
 	public int[] doorClosers = {
 			//161,166,
 			192,

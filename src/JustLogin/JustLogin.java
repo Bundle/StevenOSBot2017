@@ -207,6 +207,7 @@ public class JustLogin extends Script{
 			
 			public void populatepidlist() {
 				try{
+					pidlist = new ArrayList<>();
 				 String line;
 				    Process p = Runtime.getRuntime().exec
 				    	    (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
@@ -250,6 +251,23 @@ public class JustLogin extends Script{
 				
 			}
 			
+			public boolean waitForExtraProcesses(getrunnerboy other, long waitinterval, int numtimes) {
+				
+				//attempt every waitinterval seconds for process check thing
+				
+				try{
+					for (int i = 0; i < numtimes; i++) {
+					Thread.sleep(waitinterval);
+					if (this.extraProcesses(other).size() != 0) {
+						return true;
+					}
+					
+					}
+				}catch(Exception e){e.printStackTrace();}
+				return false;
+				
+			}
+			
 			//should be used as p2.extraProcesses(p1)
 			public ArrayList<Integer> extraProcesses(getrunnerboy other) {
 				ArrayList<Integer> out = new ArrayList<>();
@@ -275,12 +293,17 @@ public class JustLogin extends Script{
 		try{
 		final Runtime rt = Runtime.getRuntime();
 		Process pr = rt.exec(command);
-		Thread.sleep(5);
 		}catch(Exception e){};
 		getrunnerboy g2 = new getrunnerboy("java.exe");
 		g2.populatepidlist();
 		
-		ArrayList<Integer> newProcesses = g2.extraProcesses(g);
+		if (g2.waitForExtraProcesses(g, 4000, 3))
+		{
+			ArrayList<Integer> extrapids = g2.extraProcesses(g);
+			for (int i = 0; i < extrapids.size(); i++) {
+				System.out.println("extrapids(i) is: " + extrapids.get(i));
+			}
+		}
 		
 		
 		/*

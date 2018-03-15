@@ -114,7 +114,7 @@ public class LBot extends Script{
 		case locationcheck:
 			int x,y;
 			x = myPlayer().getX(); y = myPlayer().getY();
-			if (x < 3220 && y < 3208) {
+			if (y > 9000 || (x < 3220 && y < 3208)) {
 				state = STATEMACHINE.requesttutorial;
 			}
 			else if (x > 3260 && y < 3330)
@@ -451,9 +451,14 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 				}
 			
 			bank.withdrawAll("Leather");
+			rsleep(500);
+			bank.withdrawAll("Coins");
 			
 			if (inventory.getItems()[0] != null &&
-					inventory.getItems()[0].getName().equals("Leather"))
+					inventory.getItems()[0].getName().equals("Leather")
+					&& (inventory.getItems()[1] != null
+						&& inventory.getItems()[1].getName().equals("Coins")
+							))
 			{
 				if (bank.isOpen())
 					bank.close();
@@ -510,7 +515,11 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 		if  ((widgets.get(334,13) != null && widgets.get(334,13).isVisible())
 				|| WaitForWidget(335,25)) {
 			//put the hides in
-			inventory.getItems()[0].interact("Offer-All");
+			if (inventory.getItems()[0] != null)
+				inventory.getItems()[0].interact("Offer-All");
+			rsleep(200);
+			if (inventory.getItems()[1] != null)
+				inventory.getItems()[1].interact("Offer-All");
 			//press accept
 			click(264,180);
 			//wait for him to accept
@@ -573,17 +582,26 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 				bank.open();
 				rsleep(1000);
 			}
-			if (inventory.getItems()[0] != null && inventory.getItems()[0].getName().equals("Coins")) {
-				
-			}
-			else
+			
+			if (bank.contains("Coins"))
 			{
 				bank.depositAll();
 				rsleep(1000);
 				bank.withdrawAll("Coins");
-				
 			}
+			
+			if (inventory.getItems()[0] == null ||
+					!inventory.getItems()[0].getName().equals("Coins"))
+			{
+				log("wtf idiot didnt withdarw coins");
+				break;
+			}
+				
 			rsleep(1000);
+			
+			if (bank.isOpen()) {
+				bank.close();
+			}
 			
 			Entity clerk = npcs.closest("Grand Exchange Clerk");
 			if (clerk != null)
@@ -648,6 +666,7 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 		PrintWriter out = new PrintWriter(f);
 		out.println(myPlayer().getName());
 		out.close();
+		System.exit(0);
 			}catch(Exception e){e.printStackTrace();}
 			break;
 		

@@ -4,7 +4,9 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
@@ -52,6 +54,17 @@ public class LMother {
 		
 		/////////////
 		
+		//TODO: end the process?
+		for (int i =0 ; i < LBotWatchers.size(); i++)
+		{
+			if (LBotWatchers.get(i).number == number)
+			{
+				LBotWatchers.remove(number);
+				break;
+			}
+		}
+	
+		
 		LBotWatchers.add(new LBotWatcher(number));
 		
 		
@@ -84,8 +97,29 @@ public class LMother {
 			}}.start();
 		}
 		
+		void killTutorialScript() {
+			if (pidHandleOnTutorial == -1) {System.out.println("cant kill process its -1"); return;}
+			
+			final String killscriptstring = "taskkill /PID " + pidHandleOnTutorial + " /F";
+			final Runtime rt = Runtime.getRuntime();
+			new Thread() {
+				public void run() {
+			try{
+			Process pr = rt.exec(killscriptstring);
+			System.out.println("successfully ran: " + killscriptstring);
+			}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
+			
+			}}.start();
+			
+			
+		}
+		
+		int pidHandleOnTutorial = -1;
+		
 		long tutBegin;
 		public void tic(long delta) {
+			
+			
 			
 			switch (watcherState) {
 			case waitForTut:
@@ -95,10 +129,13 @@ public class LMother {
 				final long TIME = 10;
 				if (System.currentTimeMillis() - tutBegin > 
 						TIME * 60 * 1000) {
+					killTutorialScript();
 					watcherState = WatcherStates.runLBot;
 				}
+				
 				break;
 			case startTut:
+				pidHandleOnTutorial = -1;
 				String nameParam = "591";//because SDN
 				String optionsParam = "0;1;0;0;1";
 				/*khal options:
@@ -108,6 +145,11 @@ public class LMother {
 				 * walk to G E 
 				 * logout after completion
 				 */
+				final getrunnerboy g1 = new getrunnerboy("java.exe");
+				g1.populatepidlist();
+				final getrunnerboy g2 = new getrunnerboy("java.exe");
+				
+				
 				final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
 						+ "OSBot 2.5.2.jar\" "
 						+ "-login gangsthurh:s0134201342 -bot "
@@ -119,6 +161,24 @@ public class LMother {
 					public void run() {
 				try{
 				Process pr = rt.exec(command);
+				
+				if (g2.waitForExtraProcesses(g1, 15000, 2)){
+					ArrayList<Integer> newpidlist = g2.extraProcesses(g1);
+					if (newpidlist.size() > 1) {
+						System.out.println("@@@: More than 1 new instance found? dumping list@@@");
+						for (int i = 0; i < newpidlist.size(); i++) {
+							System.out.println(newpidlist.get(i));
+						}
+						pidHandleOnTutorial = newpidlist.get(newpidlist.size()-1);
+					}
+					else if (newpidlist.size() == 1) {
+						System.out.println("found the handle: " + newpidlist.get(0));
+						pidHandleOnTutorial = newpidlist.get(0);
+					}
+					
+					
+					
+				}
 				
 				}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
 				
@@ -302,7 +362,102 @@ public class LMother {
 	
 	
 	
-	
+	static class getrunnerboy {
+		//example processnamecriteria="java.exe"
+		String processnamecriteria;
+		public getrunnerboy(String processname) {
+			this.processnamecriteria = processname;
+		}
+		ArrayList<Integer> pidlist;
+		public ArrayList<Integer> getList() {
+			return pidlist;
+		}
+		
+		
+		
+		public void populatepidlist() {
+			try{
+				pidlist = new ArrayList<>();
+			 String line;
+			    Process p = Runtime.getRuntime().exec
+			    	    (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
+			    BufferedReader input =
+			            new BufferedReader(new InputStreamReader(p.getInputStream()));
+			    int linecount = 0;
+			    while ((line = input.readLine()) != null) {
+			    	linecount++;
+			    	if (linecount >= 4) {String[] split = line.split(" ");
+			    	
+			    	
+			    	
+			    	int pid = 0; String pname = "";
+			    	boolean secondlinebtw = false;
+			        for (int i = 0; i < split.length; i++){
+			        	if (secondlinebtw && pname.equals(processnamecriteria) && split[i].equals("") == false){
+				        	secondlinebtw=false;
+				        	System.out.println(line);
+				        	pid = Integer.parseInt(split[i]);
+				        	
+				        	}
+			        	if (i == 0) {
+			        		secondlinebtw=true;
+			        		pname = split[i];
+			        	}
+			        	
+			        	
+			        	
+			        }
+			        
+			        if (pname.equals(processnamecriteria)) {
+			        	pidlist.add(pid);
+			        }
+			        
+			      
+			    }}
+			    input.close();
+			} catch (Exception err) {
+			    err.printStackTrace();
+			}
+			
+		}
+		
+		public boolean waitForExtraProcesses(getrunnerboy other, long waitinterval, int numtimes) {
+			
+			//attempt every waitinterval seconds for process check thing
+			
+			try{
+				for (int i = 0; i < numtimes; i++) {
+				Thread.sleep(waitinterval);
+				populatepidlist();
+				if (this.extraProcesses(other).size() != 0) {
+					return true;
+				}
+				
+				}
+			}catch(Exception e){e.printStackTrace();}
+			return false;
+			
+		}
+		
+		//should be used as p2.extraProcesses(p1)
+		public ArrayList<Integer> extraProcesses(getrunnerboy other) {
+			ArrayList<Integer> out = new ArrayList<>();
+			//returns: this object has X more objects than "other" object
+			for (int i = 0; i < pidlist.size(); i++) {
+				boolean notfound = true;
+				for (int c = 0; c < other.pidlist.size(); c++) {
+					if (pidlist.get(i) == other.pidlist.get(c))
+						notfound = false;
+				}
+				if (notfound)
+					out.add(pidlist.get(i));
+			}
+			return out;
+			
+			
+			
+		}
+	}
 	
 	
 	

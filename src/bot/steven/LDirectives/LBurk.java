@@ -4,7 +4,9 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
 import java.util.Scanner;
+import java.util.TreeMap;
 
+import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.model.Player;
 import org.osbot.rs07.script.Script;
@@ -23,15 +25,28 @@ public class LBurk extends Script{
 		emptybags,sendtrade,gothroughwithtrade,openge,sellleather,collectprofit,returntoscanning
 	};
 	LEATHERTAKE leathertake;
-	private int PRICE_BUYING_HIDE, PRICE_SELLING_HIDE;
-	private void populatePrices() {
+	
+	public TreeMap<String,Integer> marketPrices;
+	private void fetchMarketPrices() {
+		marketPrices = new TreeMap<>();
 		try{
-		Scanner scan = new Scanner(new File(getDirectoryData() + "\\" + "cowhides.data"));
-		PRICE_BUYING_HIDE = (int)(1.10f*Integer.parseInt(scan.nextLine()));
-		PRICE_SELLING_HIDE = (int)(0.90f*Integer.parseInt(scan.nextLine()));
-		scan.close();
-		}catch(Exception e){e.printStackTrace();}
-		}
+			Scanner scan = new Scanner(new File(getDirectoryData() + "\\market.prices"));
+			while(scan.hasNextLine()) {
+				//format literal:
+				//name=price
+				String line = scan.nextLine();
+				String name = line.substring(0, line.indexOf("="));
+				int price = Integer.parseInt(line.substring(line.indexOf("=")+1));
+				marketPrices.put(name,price);
+			}
+			scan.close();
+		}catch(Exception e){log("unable to find market.prices file");};
+	}
+	public int getMarketPrice(String itemName) {
+		return marketPrices.get(itemName);
+		
+		
+	}
 	private boolean WaitForWidget (int arg1, int arg2)
 	{
 		int loops = 0;
@@ -66,9 +81,11 @@ public class LBurk extends Script{
 		mouse.click(RIGHTCLICK);
 	}final boolean LEFTCLICK = false, RIGHTCLICK = true;
 	public void onStart() {
-		populatePrices();
+		fetchMarketPrices();
+		
 		master = MASTER.scanning;
 		scanning = SCANNING.loggingOut;
+		
 		
 	}
 	
@@ -230,6 +247,7 @@ public class LBurk extends Script{
 	        
 			break;
 		case getcoinsfrombank:
+			walking.walk(new Position(3167,3485,0));
 			try{
 			while (!bank.isOpen()) {
 				bank.open();
@@ -342,6 +360,10 @@ public class LBurk extends Script{
 			
 			break;
 		case emptybags:
+			
+			try{if (!bank.isOpen()) {
+				bank.open();
+			}}catch(Exception e){};
 			bank.depositAll();
 			rsleep(1000);
 			if (inventory.isEmpty()) {
@@ -353,7 +375,10 @@ public class LBurk extends Script{
 				if (p.getName().equals(interactName)) {
 					p.interact("Trade with");
 					log("Sending trade to " + p.getName());
-					coingive = COINGIVE.gothroughwithtrade;
+					if (WaitForWidget(335,25)) {
+					leathertake = LEATHERTAKE.gothroughwithtrade;
+					
+					}
 					rsleep(1500);
 					break;
 				}
@@ -384,9 +409,11 @@ public class LBurk extends Script{
 				clerk2.interact("Exchange");
 			else
 				break;
-			
-			//click collect
 			rsleep(2000);
+			//grand exchange opening screen
+			if (WaitForWidget(465,2,1)) {
+			//click collect
+			
 			click(456,64);
 			
 			if (WaitForWidget(465,7,3)) {//create buy offer widget 
@@ -396,8 +423,8 @@ public class LBurk extends Script{
 					
 					
 					click(386,205);
-					if (WaitForWidget(162,34)) {
-						keyboard.typeString("" + PRICE_SELLING_HIDE); 
+					if (WaitForWidget(162,36)) {
+						keyboard.typeString("" + (int)(getMarketPrice("Leather")*0.89)); 
 						rsleep(1500);
 						click(260,287);//click confirm
 						//wait for collect button to appear
@@ -413,6 +440,7 @@ public class LBurk extends Script{
 					
 					}
 				
+			}
 			}
 			
 			break;
