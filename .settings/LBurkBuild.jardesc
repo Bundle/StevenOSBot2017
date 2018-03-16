@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="WINDOWS-1252" standalone="no"?>
+<jardesc>
+    <jar path="C:/Users/Yoloswag/OSBot/Scripts/LBurk.jar"/>
+    <options buildIfNeeded="true" compress="true" descriptionLocation="/StevenOSBot2017/.settings/LBurkBuild.jardesc" exportErrors="false" exportWarnings="true" includeDirectoryEntries="false" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
+    <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
+    <selectedProjects/>
+    <manifest generateManifest="true" manifestLocation="" manifestVersion="1.0" reuseManifest="false" saveManifest="false" usesManifest="true">
+        <sealing sealJar="false">
+            <packagesToSeal/>
+            <packagesToUnSeal/>
+        </sealing>
+    </manifest>
+    <selectedElements exportClassFiles="true" exportJavaFiles="true" exportOutputFolder="false">
+        <javaElement handleIdentifier="=StevenOSBot2017/src&lt;bot.steven.LDirectives{LBurk.java"/>
+        <javaElement handleIdentifier="=StevenOSBot2017/src&lt;bot.steven.LDirectives{LoginEvent.java"/>
+    </selectedElements>
+</jardesc>

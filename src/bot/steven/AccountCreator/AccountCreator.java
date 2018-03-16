@@ -160,7 +160,7 @@ try{
 				"Send, {enter}" + n + 
 				"}" + n +
 				"typePassword() {" + n +
-				"SendInput,0134201342" + n +
+				"SendInput," + getpassword() + n +
 					"}" + n + 
 			"addEmail() {" + n + 
 			"	static starting := " + startingNumber + " - 1" + n +

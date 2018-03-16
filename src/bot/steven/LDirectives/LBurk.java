@@ -9,8 +9,13 @@ import java.util.TreeMap;
 import org.osbot.rs07.api.map.Position;
 import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.model.Player;
+import org.osbot.rs07.api.ui.Message;
+import org.osbot.rs07.api.ui.RS2Widget;
+import org.osbot.rs07.input.mouse.RectangleDestination;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
+
+import bot.steven.LDirectives.LBot.STATEMACHINE;
 
 @ScriptManifest(author = "Steven Ventura", info = "LBurk head", logo = "", name = "LBurk", version = 0)
 public class LBurk extends Script{
@@ -46,6 +51,15 @@ public class LBurk extends Script{
 		return marketPrices.get(itemName);
 		
 		
+	}
+	public void onMessage(Message message)
+	{
+	String text = message.getMessage();
+	if (text.equals("Other player declined trade.")) {
+		
+		
+		
+	}
 	}
 	private boolean WaitForWidget (int arg1, int arg2)
 	{
@@ -178,7 +192,7 @@ public class LBurk extends Script{
 			logoutTab.open();
 			logoutTab.logOut();
 		}
-			
+		numtimeslmao = 0;
 			
 				scanning = SCANNING.scanning;
 		
@@ -227,7 +241,18 @@ public class LBurk extends Script{
 	COINGIVE coingive;
 	
 	};*/
-	
+	 private RS2Widget getLobbyButton() {
+	    	try{
+	        return widgets.get(378,76);//changed by hand on 3/15/18 after an update
+	    	//return getWidgets().getWidgetContainingText("CLICK HERE TO PLAY");
+	    	}catch(NullPointerException n){
+	    		return null;
+	    	}
+	    
+	    }
+	 private boolean isOnWorldSelectorScreen() {
+	        return getColorPicker().isColorAt(50, 50, Color.BLACK);
+	    }
 	private LoginEvent loginEvent;
 	private void coinStateMachine() {
 		//TODO
@@ -235,26 +260,70 @@ public class LBurk extends Script{
 		switch (coingive) {
 		case login:
 			
-			loginEvent = new LoginEvent();
-	        getBot().addLoginListener(loginEvent);
+			 if (getClient().isLoggedIn() && getLobbyButton() == null
+			  && widgets.get(548,69) != null) {
+				
+				 coingive = COINGIVE.getcoinsfrombank;
+		            break;
+		        } else if (getLobbyButton() != null && getLobbyButton().isVisible()) {
+		        
+		        	getLobbyButton().interact();
+		        	break;
+		        } else if (isOnWorldSelectorScreen()) {
+		       
+		        	getMouse().click(new RectangleDestination(getBot(), 712, 8, 42, 8));
+		        	break;
+		        } else {
+		        
+		        	switch (getClient().getLoginUIState()) {
+		            case 0:
+		            	
+		            	getMouse().click(new RectangleDestination(getBot(), 400, 280, 120, 20));
+		                break;
+		            case 1:
+		            	getMouse().click(new RectangleDestination(getBot(), 240, 310, 120, 20));
+		            //    clickLoginButton();
+		                break;
+		            case 2:
+		            	if (client.isLoggedIn()) {
+		            		
+		            	}
+		            	else
+		            	{
+		            		numtimeslmao++;
+		            		log(numtimeslmao);
+		            		if (numtimeslmao == 1) {
+		            	getKeyboard().typeString("stevenfakeaccountemail121@gmail.com");
+		               
+		            	getKeyboard().typeString(getpassword());
+		            		}
+		            	}
+		            	
+		            //    enterUserDetails();
+		                break;
+		        }
+		        }
 	        
-	        loginEvent.setUsername("stevenfakeaccountemail121@gmail.com");
-	        loginEvent.setPassword("0134201342");
-	        execute(loginEvent);
-	        
-			coingive = COINGIVE.getcoinsfrombank;
+			
 			
 	        
 			break;
 		case getcoinsfrombank:
+			final int cashamount = 2_400_000 / 9;
 			walking.walk(new Position(3167,3485,0));
+			if (inventory.getItems()[0] != null &&
+					inventory.getItems()[0].nameContains("Coins")
+					&& inventory.getItems()[0].getAmount() == cashamount) {
+				coingive = COINGIVE.sendtrade;
+				break;
+			}
 			try{
 			while (!bank.isOpen()) {
 				bank.open();
 			}}catch(Exception e){};
 			bank.depositAll();
 			rsleep(1000);
-			final int cashamount =666666 / 6; 
+			
 			//money
 			bank.withdraw("Coins",cashamount);
 			rsleep(1000);
@@ -269,12 +338,24 @@ public class LBurk extends Script{
 			}
 			break;
 		case sendtrade:
+			if ((widgets.get(335,25) != null && widgets.get(335,25).isVisible())
+					||
+					(widgets.get(334,13) != null && widgets.get(334,13).isVisible()))
+			{
+				coingive = COINGIVE.gothroughwithtrade;
+				break;
+			}
+			else
+				walking.walk(new Position(3169,3482,0));
 			
 			for (Player p : getPlayers().getAll()) {
 				if (p.getName().equals(interactName)) {
 					p.interact("Trade with");
 					log("Sending trade to " + p.getName());
+					if (WaitForWidget(335,25)) {
+						
 					coingive = COINGIVE.gothroughwithtrade;
+					}
 					rsleep(1500);
 					break;
 				}
@@ -282,6 +363,19 @@ public class LBurk extends Script{
 			
 			break;
 		case gothroughwithtrade:
+			
+
+			if (
+					!(
+					(widgets.get(335,25) != null && widgets.get(335,25).isVisible())
+					||
+					(widgets.get(334,13) != null && widgets.get(334,13).isVisible())
+					)
+					)
+			{
+				coingive = COINGIVE.sendtrade;
+				break;
+			}
 			
 			/*//TODO: put this new version of widget handling in jugboys
 			Entity tradeboy = players.closest(currentTradeBoy);
@@ -335,6 +429,11 @@ public class LBurk extends Script{
 			
 			break;
 		case returntoscanning:
+			if (inventory.getItems()[0] != null) {
+				//the trade fucked up; do it again
+				coingive = COINGIVE.sendtrade; 
+				break;
+			}
 			scanning = SCANNING.loggingOut;
 			master = MASTER.scanning;
 			break;
@@ -344,21 +443,66 @@ public class LBurk extends Script{
 	 * enum LEATHERTAKE {login,
 		emptybags,sendtrade,gothroughwithtrade,openge,sellleather,collectprofit,returntoscanning
 	 */
+	int numtimeslmao = 0;
 	private void leatherStateMachine() {
 		log("log in pls");
 		switch (leathertake) {
+		
+			
 		case login:
 			
-			loginEvent = new LoginEvent();
-	        getBot().addLoginListener(loginEvent);
+			 if (getClient().isLoggedIn() && getLobbyButton() == null
+			  && widgets.get(548,69) != null) {
+				
+				 leathertake = LEATHERTAKE.emptybags;
+		            break;
+		        } else if (getLobbyButton() != null && getLobbyButton().isVisible()) {
+		        
+		        	getLobbyButton().interact();
+		        	break;
+		        } else if (isOnWorldSelectorScreen()) {
+		       
+		        	getMouse().click(new RectangleDestination(getBot(), 712, 8, 42, 8));
+		        	break;
+		        } else {
+		        
+		        	switch (getClient().getLoginUIState()) {
+		            case 0:
+		            	
+		            	getMouse().click(new RectangleDestination(getBot(), 400, 280, 120, 20));
+		                break;
+		            case 1:
+		            	getMouse().click(new RectangleDestination(getBot(), 240, 310, 120, 20));
+		            //    clickLoginButton();
+		                break;
+		            case 2:
+		            	if (client.isLoggedIn()) {
+		            		
+		            	}
+		            	else
+		            	{
+		            		numtimeslmao++;
+		            		log(numtimeslmao);
+		            		if (numtimeslmao == 1) {
+		            	getKeyboard().typeString("stevenfakeaccountemail121@gmail.com");
+		               
+		            	getKeyboard().typeString(getpassword());
+		            	}
+		            	}
+		            	
+		            //    enterUserDetails();
+		                break;
+		        }
+		        }
 	        
-	        loginEvent.setUsername("stevenfakeaccountemail121@gmail.com");
-	        loginEvent.setPassword("0134201342");
-	        execute(loginEvent);
-	        
-	        leathertake = LEATHERTAKE.emptybags;
 			
+			
+	        
 			break;
+	        
+	       
+			
+			
 		case emptybags:
 			
 			try{if (!bank.isOpen()) {
@@ -371,6 +515,17 @@ public class LBurk extends Script{
 			}
 			break;
 		case sendtrade:
+			
+			if ((widgets.get(335,25) != null && widgets.get(335,25).isVisible())
+					||
+					(widgets.get(334,13) != null && widgets.get(334,13).isVisible()))
+			{
+				leathertake = LEATHERTAKE.gothroughwithtrade;
+				break;
+			}
+			else
+				walking.walk(new Position(3169,3482,0));
+			
 			for (Player p : getPlayers().getAll()) {
 				if (p.getName().equals(interactName)) {
 					p.interact("Trade with");
@@ -388,6 +543,17 @@ public class LBurk extends Script{
 		case gothroughwithtrade:
 			//trade screen 1 widget is 335,25
 			//trade screen 2 widget is 334,13
+			if (
+					!(
+					(widgets.get(335,25) != null && widgets.get(335,25).isVisible())
+					||
+					(widgets.get(334,13) != null && widgets.get(334,13).isVisible())
+					)
+					)
+			{
+				leathertake = LEATHERTAKE.sendtrade;
+				break;
+			}
 		if  ((widgets.get(334,13) != null && widgets.get(334,13).isVisible())
 				|| WaitForWidget(335,25)) {
 			//wait a second for him to put the goods up

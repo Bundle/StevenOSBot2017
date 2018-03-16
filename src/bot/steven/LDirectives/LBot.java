@@ -14,6 +14,8 @@ import org.osbot.rs07.api.model.Player;
 import org.osbot.rs07.api.model.RS2Object;
 import org.osbot.rs07.api.model.WallObject;
 import org.osbot.rs07.api.ui.Message;
+import org.osbot.rs07.api.ui.RS2Widget;
+import org.osbot.rs07.input.mouse.RectangleDestination;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 @ScriptManifest(author = "Steven Ventura", info = "LBot", logo = "", name = "LBot", version = 0)
@@ -28,7 +30,9 @@ public class LBot extends Script{
 		requestburktakehides,waitfortradehides,completetradehides,
 		auditbank,buycowhides,logoutretire,
 		notefinishedhidesfrombank,
-		requesttutorial
+		requesttutorial,
+		waitingforlogin,
+		loginstate1,loginstate2,loginstate3,loginstate4
 	};
 	STATEMACHINE state;
 	private void waitForMovements()
@@ -84,9 +88,12 @@ public class LBot extends Script{
 		return true;
 	}
 	
+	
 	public void onStart() {
 		fetchMarketPrices();
-		state = STATEMACHINE.locationcheck;
+		state = STATEMACHINE.loginstate1;
+		
+		
 	}
 	final boolean LEFTCLICK=false,RIGHTCLICK=true;
 	private void click(int x, int y)
@@ -106,12 +113,75 @@ public class LBot extends Script{
 			}catch(Exception e){}
 		}
 	}
+	 private RS2Widget getLobbyButton() {
+	    	try{
+	        return widgets.get(378,76);//changed by hand on 3/15/18 after an update
+	    	//return getWidgets().getWidgetContainingText("CLICK HERE TO PLAY");
+	    	}catch(NullPointerException n){
+	    		return null;
+	    	}
+	    
+	    }
+	 private boolean isOnWorldSelectorScreen() {
+	        return getColorPicker().isColorAt(50, 50, Color.BLACK);
+	    }
 	long lastfiletime = 0;
+	int numtimeslmao = 0;
 	@Override
 	public int onLoop() throws InterruptedException {
 		switch(state) {
-		
+		case loginstate1:
+			 if (getClient().isLoggedIn() && getLobbyButton() == null
+			  && widgets.get(548,69) != null) {
+				
+		            state = STATEMACHINE.locationcheck;
+		            break;
+		        } else if (getLobbyButton() != null && getLobbyButton().isVisible()) {
+		        
+		        	getLobbyButton().interact();
+		        	break;
+		        } else if (isOnWorldSelectorScreen()) {
+		       
+		        	getMouse().click(new RectangleDestination(getBot(), 712, 8, 42, 8));
+		        	break;
+		        } else {
+		        
+		        	switch (getClient().getLoginUIState()) {
+		            case 0:
+		            	
+		            	getMouse().click(new RectangleDestination(getBot(), 400, 280, 120, 20));
+		                break;
+		            case 1:
+		            	getMouse().click(new RectangleDestination(getBot(), 240, 310, 120, 20));
+		            //    clickLoginButton();
+		                break;
+		            case 2:
+		            	if (client.isLoggedIn()) {
+		            		
+		            	}
+		            	else
+		            	{
+		            		numtimeslmao++;
+		            		log(numtimeslmao);
+		            		if (numtimeslmao == 1) {
+		            	keyboard.typeString("stevenfakeaccountemail" + getParameters() + "@gmail.com");
+		               rsleep(800);
+		            	keyboard.typeString(getpassword());
+		            	
+		            		}
+		            	}
+		            	
+		            //    enterUserDetails();
+		                break;
+		        }
+		        }
+        
+    break;
+			
+			
+			
 		case locationcheck:
+			log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			int x,y;
 			x = myPlayer().getX(); y = myPlayer().getY();
 			if (y > 9000 || (x < 3220 && y < 3208)) {
@@ -677,7 +747,7 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 		
 		
 		
-		return 50 + (int)(Math.random()*50);
+		return 150 + (int)(Math.random()*50);
 	}
 	public TreeMap<String,Integer> marketPrices;
 	private void fetchMarketPrices() {

@@ -48,7 +48,7 @@ public class LMother {
 	}			
 	private void addLBot(int number) {
 		
-		
+		System.out.println("starting LBot on " + number);
 		jta.append("starting LBot on " + number + "\r\n");
 		////////////
 		
@@ -59,7 +59,7 @@ public class LMother {
 		{
 			if (LBotWatchers.get(i).number == number)
 			{
-				LBotWatchers.remove(number);
+				LBotWatchers.remove(i);
 				break;
 			}
 		}
@@ -82,10 +82,11 @@ public class LMother {
 		private void runLBot() {
 			final String LBotCommand = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
 					+ "OSBot " + jarver + ".jar\" "
-					+ "-login gangsthurh:s0134201342 -bot "
+					+ "-login gangsthurh:" + getpassword2() + " -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
-					+ "0134201342:1234"
-					+ " -script " + "LBot" + ":" + number;
+					+ getpassword() + ":1234"
+					+ " -script " + "LBot" + ":" + number
+					+ " -allow norandoms";
 			final Runtime rt = Runtime.getRuntime();
 			new Thread() {
 				public void run() {
@@ -152,9 +153,9 @@ public class LMother {
 				
 				final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
 						+ "OSBot 2.5.2.jar\" "
-						+ "-login gangsthurh:s0134201342 -bot "
+						+ "-login gangsthurh:" + getpassword2() + " -bot "
 						+ "stevenfakeaccountemail" + number + "@gmail.com:"
-						+ "0134201342:1234"
+						+ getpassword() + ":1234"
 						+ " -script " + nameParam + ":" + optionsParam;
 				final Runtime rt = Runtime.getRuntime();
 				new Thread() {
@@ -251,7 +252,9 @@ public class LMother {
 		f.setSize(800,600);
 		f.setLayout(new FlowLayout());
 		final JTextField boynumber = new JTextField();
-		boynumber.setPreferredSize(new Dimension(200,100));
+		final JTextField boynumber2 = new JTextField();
+		boynumber.setPreferredSize(new Dimension(100,100));
+		boynumber2.setPreferredSize(new Dimension(100,100));
 		
 		jta.setPreferredSize(new Dimension(400,400));
 		jta.append("Starting Burk btw..." + "\r\n");
@@ -266,11 +269,19 @@ public class LMother {
 				//start new bot
 				int number = Integer.parseInt(boynumber.getText());
 				
-				
-				addLBot(number);
-				
+				if (boynumber2.getText().equals(""))
+					addLBot(number);
+				else
+				{
+					for (int i = Integer.parseInt(boynumber.getText()); i <= 
+								Integer.parseInt(boynumber2.getText()); 
+							i++) {
+						addLBot(i);
+					}
+				}
 				
 				boynumber.setText("");
+				boynumber2.setText("");
 				
 				
 			}
@@ -280,6 +291,7 @@ public class LMother {
 		
 		f.add(b);
 		f.add(boynumber);
+		f.add(boynumber2);
 		f.add(jta);
 		
 		
@@ -473,9 +485,9 @@ public class LMother {
 	
 	final String burkcommand = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
 			+ "OSBot " + jarver + ".jar\" "
-			+ "-login gangsthurh:s0134201342 -bot "
+			+ "-login gangsthurh:" + getpassword2() + " -bot "
 			+ "stevenfakeaccountemail121@gmail.com:"
-			+ "0134201342:1234"
+			+ getpassword() + ":1234"
 			+ " -script " + "LBurk" + ":" + "1234"
 			+ " -allow norandoms";
 }

@@ -65,12 +65,15 @@ public class BotStarter {
 	};
 	public int[] justCreatedNeedsTutorialIsland = {
 			
-			200,201,202,203
+			
 			
 			
 	};
 	public int[] LBots = {
-		197,198,199,200	
+		
+			197,198,199,200,201	,202,203,204,205
+	};
+	public int[] doneLBotting =  {
 			
 	};
 	public int[] doorClosers = {
@@ -275,9 +278,9 @@ public class BotStarter {
 			
 			final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
 					+ "OSBot 2.5.2.jar\" "
-					+ "-login gangsthurh:s0134201342 -bot "
+					+ "-login gangsthurh:" + getpassword2() + " -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
-					+ "0134201342:1234"
+					+ getpassword() + ":1234"
 					+ " -script " + name + ":" + options;
 			
 			

@@ -1,4 +1,6 @@
 //https://osbot.org/forum/topic/109560-a-simple-login-handler/
+//https://osbot.org/forum/topic/109560-a-simple-login-handler/
+//edited for patch on 3/15/18 by Gangsthurh (osbot)
 
 package bot.steven.LDirectives;
 
@@ -9,19 +11,18 @@ import org.osbot.rs07.constants.ResponseCode;
 import org.osbot.rs07.event.Event;
 import org.osbot.rs07.input.mouse.RectangleDestination;
 import org.osbot.rs07.listener.LoginResponseCodeListener;
+import org.osbot.rs07.script.Script;
 import org.osbot.rs07.utility.ConditionalSleep;
 
 public final class LoginEvent extends Event implements LoginResponseCodeListener {
 
     private String username, password;
 
-    public LoginEvent() {}
-
-    public LoginEvent(final String username, final String password) {
-        this.username = username;
-        this.password = password;
+    public LoginEvent(Script script) {
+    	this.script = script;
     }
-
+    Script script;
+    
     public void setUsername(final String username) {
         this.username = username;
     }
@@ -110,7 +111,13 @@ public final class LoginEvent extends Event implements LoginResponseCodeListener
     }
 
     private RS2Widget getLobbyButton() {
-        return getWidgets().getWidgetContainingText("CLICK HERE TO PLAY");
+    	try{
+        return script.widgets.get(378,76);//changed by hand on 3/15/18 after an update
+    	//return getWidgets().getWidgetContainingText("CLICK HERE TO PLAY");
+    	}catch(NullPointerException n){
+    		return null;
+    	}
+    
     }
 
 
