@@ -13,6 +13,7 @@ import java.util.ConcurrentModificationException;
 import java.util.Scanner;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -22,8 +23,21 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 public class LMother {
-
-	static final String jarver = "2.5.2";
+	private String password1,password2,burkemail;
+	void getpasswords() {
+		try{
+		Scanner scan = new Scanner(new File("C:\\Users\\Yoloswag\\osbot\\data\\logininfo.btw"));
+		password1 = scan.nextLine();
+		password2 = scan.nextLine();
+		burkemail = scan.nextLine();
+		scan.close();
+		}catch(Exception e){e.printStackTrace();}
+	}
+	private String getpassword() { return password1; }
+	private String getpassword2() {return password2; }
+	private String getburkemail(){ return burkemail; }
+	
+	static final String jarver = "2.5.3";
 	public LMother() {
 		
 	}
@@ -32,60 +46,46 @@ public class LMother {
 	{
 		try{Thread.sleep(time);
 		}catch(Exception e){e.printStackTrace();}}
-	private void startBurk() {
+	private void startBurk(final String typename) {
 		
 			
 			final Runtime rt = Runtime.getRuntime();
 			new Thread() {
 				public void run() {
 			try{
+				String burkcommand = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
+						+ "OSBot " + jarver + ".jar\" "
+						+ "-login gangsthurh:" + getpassword2() + " -bot "
+						+ getburkemail() + ":" 
+						+ getpassword() + ":1234"
+						+ " -script " + getBurk(typename) + ":" + "1234"
+						+ " -allow norandoms";
 			Process pr = rt.exec(burkcommand);
+			System.out.println(burkcommand);;
 			
 			}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
 			
 			}}.start();
 
 	}			
-	private void addLBot(int number) {
-		
-		System.out.println("starting LBot on " + number);
-		jta.append("starting LBot on " + number + "\r\n");
-		////////////
-		
-		/////////////
-		
-		//TODO: end the process?
-		for (int i =0 ; i < LBotWatchers.size(); i++)
-		{
-			if (LBotWatchers.get(i).number == number)
-			{
-				LBotWatchers.remove(i);
-				break;
-			}
-		}
 	
+
+	enum WatcherStates {waitForTut, startTut, runMotheredBot, scanForTutReq, scanForDone};
+	class BotWatcher {
 		
-		LBotWatchers.add(new LBotWatcher(number));
-		
-		
-		
-		
-		
-		
-	}
-	static class LBotWatcher {
-		enum WatcherStates {waitForTut, startTut, runLBot, scanForTutReq, scanForDone};
 		WatcherStates watcherState;
 		public int number;
-		public LBotWatcher(int number) {this.number = number;watcherState = WatcherStates.runLBot; }
+		public String scriptType;
+		public BotWatcher(int number, String scriptType) {
+			this.scriptType = scriptType;this.number = number;watcherState = WatcherStates.runMotheredBot; }
 		
-		private void runLBot() {
+		private void runMotheredBot() {
 			final String LBotCommand = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
 					+ "OSBot " + jarver + ".jar\" "
 					+ "-login gangsthurh:" + getpassword2() + " -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
 					+ getpassword() + ":1234"
-					+ " -script " + "LBot" + ":" + number
+					+ " -script " + getStringNameForBotType(scriptType) + ":" + number
 					+ " -allow norandoms";
 			final Runtime rt = Runtime.getRuntime();
 			new Thread() {
@@ -99,9 +99,10 @@ public class LMother {
 		}
 		
 		void killTutorialScript() {
-			if (pidHandleOnTutorial == -1) {System.out.println("cant kill process its -1"); return;}
+			if (pidHandlesOnMultipleTutorials.size()==0) {System.out.println("cant kill, process size is 0"); return;}
 			
-			final String killscriptstring = "taskkill /PID " + pidHandleOnTutorial + " /F";
+			for (int n = 0; n < pidHandlesOnMultipleTutorials.size(); n++) {
+			final String killscriptstring = "taskkill /PID " + pidHandlesOnMultipleTutorials.get(n) + " /F";
 			final Runtime rt = Runtime.getRuntime();
 			new Thread() {
 				public void run() {
@@ -111,12 +112,12 @@ public class LMother {
 			}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
 			
 			}}.start();
+			}
 			
 			
 		}
 		
-		int pidHandleOnTutorial = -1;
-		
+		ArrayList<Integer> pidHandlesOnMultipleTutorials;
 		long tutBegin;
 		public void tic(long delta) {
 			
@@ -131,12 +132,12 @@ public class LMother {
 				if (System.currentTimeMillis() - tutBegin > 
 						TIME * 60 * 1000) {
 					killTutorialScript();
-					watcherState = WatcherStates.runLBot;
+					watcherState = WatcherStates.runMotheredBot;
 				}
 				
 				break;
 			case startTut:
-				pidHandleOnTutorial = -1;
+				pidHandlesOnMultipleTutorials = new ArrayList<>();
 				String nameParam = "591";//because SDN
 				String optionsParam = "0;1;0;0;1";
 				/*khal options:
@@ -148,11 +149,12 @@ public class LMother {
 				 */
 				final getrunnerboy g1 = new getrunnerboy("java.exe");
 				g1.populatepidlist();
+				System.out.println("g1.pidlistsize is " + g1.pidlist.size());
 				final getrunnerboy g2 = new getrunnerboy("java.exe");
 				
 				
 				final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
-						+ "OSBot 2.5.2.jar\" "
+						+ "OSBot " + jarver + ".jar\" "
 						+ "-login gangsthurh:" + getpassword2() + " -bot "
 						+ "stevenfakeaccountemail" + number + "@gmail.com:"
 						+ getpassword() + ":1234"
@@ -165,7 +167,8 @@ public class LMother {
 				
 				if (g2.waitForExtraProcesses(g1, 15000, 2)){
 					ArrayList<Integer> newpidlist = g2.extraProcesses(g1);
-					if (newpidlist.size() > 1) {
+					ArrayList<Integer> pidHandlesOnMultipleTutorials = newpidlist;
+					/*if (newpidlist.size() > 1) {
 						System.out.println("@@@: More than 1 new instance found? dumping list@@@");
 						for (int i = 0; i < newpidlist.size(); i++) {
 							System.out.println(newpidlist.get(i));
@@ -175,7 +178,8 @@ public class LMother {
 					else if (newpidlist.size() == 1) {
 						System.out.println("found the handle: " + newpidlist.get(0));
 						pidHandleOnTutorial = newpidlist.get(0);
-					}
+					}*/
+					
 					
 					
 					
@@ -189,8 +193,8 @@ public class LMother {
 				
 				watcherState = WatcherStates.waitForTut;
 				break;
-			case runLBot:
-				runLBot();
+			case runMotheredBot:
+				runMotheredBot();
 				watcherState = WatcherStates.scanForTutReq;
 				break;
 			case scanForTutReq:
@@ -240,24 +244,84 @@ public class LMother {
 		}
 	}
 	
-	ArrayList<LBotWatcher>  LBotWatchers = new ArrayList<>();
+	ArrayList<BotWatcher>  botWatchers = new ArrayList<>();
 	
-	
-	final JTextArea jta = new JTextArea();
-	public void begin() {
+	private final String getStringNameForBotType(String type) {
+		switch(type) {
+		case "LBot":
+			return "LBot";
 		
-		startBurk();
+		case "KBot":
+			return "KBot";
+			
+		}
+		
+		return null;
+		
+	}
+	
+	private void addBot(int number, String type) {
+		System.out.println("starting " + type + " on " + number);
+		jta.append("starting LBot on " + number + "\r\n");
+		////////////
+		
+		/////////////
+		
+		//TODO: end the process?
+		for (int i =0 ; i < botWatchers.size(); i++)
+		{
+			if (botWatchers.get(i).number == number)
+			{
+				botWatchers.remove(i);
+				break;
+			}
+		}
+	
+		
+		botWatchers.add(new BotWatcher(number,type));
+		
+		
+	}
+	final JTextArea jta = new JTextArea();
+	final String[] botChoices = {"KBot", "LBot"};
+	static final String getBurk(String name) {
+		switch (name) {
+		case ("KBot"):
+			return "KBurk";
+		case ("LBot"):
+			return "LBurk";
+		}
+		
+		return null;
+	}
+	final JComboBox<String> botChoiceBox = new JComboBox<String>(botChoices);
+	public void begin() {
+		getpasswords();
+		
 		
 		f = new JFrame("LMother.java");
 		f.setSize(800,600);
 		f.setLayout(new FlowLayout());
+		
+		
+		botChoiceBox.setPreferredSize(new Dimension(100,100));
 		final JTextField boynumber = new JTextField();
 		final JTextField boynumber2 = new JTextField();
 		boynumber.setPreferredSize(new Dimension(100,100));
 		boynumber2.setPreferredSize(new Dimension(100,100));
 		
 		jta.setPreferredSize(new Dimension(400,400));
-		jta.append("Starting Burk btw..." + "\r\n");
+		
+		final JButton burkbutton = new JButton("burk");
+		burkbutton.setPreferredSize(new Dimension(60,40));
+		burkbutton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				startBurk(botChoices[botChoiceBox.getSelectedIndex()]);
+				jta.append("Starting burk ..." + "\r\n");
+			}
+			
+		});
+		
 		
 		final JButton b = new JButton("add boy");
 		b.setPreferredSize(new Dimension(200,100));
@@ -270,13 +334,13 @@ public class LMother {
 				int number = Integer.parseInt(boynumber.getText());
 				
 				if (boynumber2.getText().equals(""))
-					addLBot(number);
+					addBot(number,botChoices[botChoiceBox.getSelectedIndex()]);
 				else
 				{
 					for (int i = Integer.parseInt(boynumber.getText()); i <= 
 								Integer.parseInt(boynumber2.getText()); 
 							i++) {
-						addLBot(i);
+						addBot(i,botChoices[botChoiceBox.getSelectedIndex()]);
 					}
 				}
 				
@@ -288,6 +352,8 @@ public class LMother {
 		});
 		
 		
+		f.add(burkbutton);
+		f.add(botChoiceBox);
 		
 		f.add(b);
 		f.add(boynumber);
@@ -306,7 +372,7 @@ public class LMother {
 			rsleep(2000);
 			CT=System.currentTimeMillis();
 			try{
-			for (LBotWatcher L : LBotWatchers) {
+			for (BotWatcher L : botWatchers) {
 				L.tic(CT - LT);
 			}
 			}catch(ConcurrentModificationException cme) { };
@@ -441,6 +507,7 @@ public class LMother {
 				for (int i = 0; i < numtimes; i++) {
 				Thread.sleep(waitinterval);
 				populatepidlist();
+				System.out.println("pidlist.size is " + pidlist.size());
 				if (this.extraProcesses(other).size() != 0) {
 					return true;
 				}
@@ -456,13 +523,22 @@ public class LMother {
 			ArrayList<Integer> out = new ArrayList<>();
 			//returns: this object has X more objects than "other" object
 			for (int i = 0; i < pidlist.size(); i++) {
-				boolean notfound = true;
-				for (int c = 0; c < other.pidlist.size(); c++) {
-					if (pidlist.get(i) == other.pidlist.get(c))
-						notfound = false;
+				if (!other.pidlist.contains(pidlist.get(i)))
+				{
+					out.add(new Integer(pidlist.get(i)));
 				}
-				if (notfound)
-					out.add(pidlist.get(i));
+				
+				/*boolean found = false;
+				for (int c = 0; c < other.pidlist.size(); c++) {
+					System.out.println(pidlist.get(i) + " ?? " + other.pidlist.get(c));
+					if (pidlist.get(i) == other.pidlist.get(c))
+					{
+						System.out.println("found it");
+						found = true;
+					}
+				}
+				if (!found)
+					out.add(pidlist.get(i));*/
 			}
 			return out;
 			
@@ -483,11 +559,5 @@ public class LMother {
 	
 	
 	
-	final String burkcommand = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
-			+ "OSBot " + jarver + ".jar\" "
-			+ "-login gangsthurh:" + getpassword2() + " -bot "
-			+ "stevenfakeaccountemail121@gmail.com:"
-			+ getpassword() + ":1234"
-			+ " -script " + "LBurk" + ":" + "1234"
-			+ " -allow norandoms";
+	
 }

@@ -7,7 +7,6 @@ import java.util.Scanner;
 import java.util.TreeMap;
 
 import org.osbot.rs07.api.map.Position;
-import org.osbot.rs07.api.model.Entity;
 import org.osbot.rs07.api.model.Player;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.api.ui.RS2Widget;
@@ -15,10 +14,8 @@ import org.osbot.rs07.input.mouse.RectangleDestination;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
 
-import bot.steven.LDirectives.LBot.STATEMACHINE;
-
-@ScriptManifest(author = "Steven Ventura", info = "LBurk head", logo = "", name = "LBurk", version = 0)
-public class LBurk extends Script{
+@ScriptManifest(author = "Steven Ventura", info = "KBurk head", logo = "", name = "KBurk", version = 0)
+public class KBurk extends Script{
 	private String password1,password2;
 	void getpasswords() {
 		try{
@@ -28,16 +25,15 @@ public class LBurk extends Script{
 		}catch(Exception e){e.printStackTrace();}
 	}
 	private String getpassword() { return password1; }
-	enum MASTER {scanning, coingive, leathertake};
+	enum MASTER {scanning, kebabtake};
 	MASTER master;
 	enum SCANNING {scanning, loggingOut};
 	SCANNING scanning;
-	enum COINGIVE {login,getcoinsfrombank,sendtrade,gothroughwithtrade,returntoscanning};
-	COINGIVE coingive;
-	enum LEATHERTAKE {login,
-		emptybags,sendtrade,gothroughwithtrade,openge,sellleather,collectprofit,returntoscanning
+	
+	enum KEBABTAKE {login,
+		checkbags,sendtrade,gothroughwithtrade,returntoscanning
 	};
-	LEATHERTAKE leathertake;
+	KEBABTAKE kebabtake;
 	
 	public TreeMap<String,Integer> marketPrices;
 	private void fetchMarketPrices() {
@@ -54,6 +50,17 @@ public class LBurk extends Script{
 			}
 			scan.close();
 		}catch(Exception e){log("unable to find market.prices file");};
+	}
+	
+	private Position meetupLocation() {
+		int x,y,z;
+		x=3270;
+		y=3163;
+		z = 0;
+		
+		
+		
+		return new Position(x,y,z);
 	}
 	public int getMarketPrice(String itemName) {
 		return marketPrices.get(itemName);
@@ -118,11 +125,8 @@ public class LBurk extends Script{
 		case scanning:
 			scanStateMachine();
 			break;
-		case coingive:
-			coinStateMachine();
-			break;
-		case leathertake:
-			leatherStateMachine();
+		case kebabtake:
+			kebabStateMachine();
 			break;
 			
 		}
@@ -159,18 +163,14 @@ public class LBurk extends Script{
 				log("reee");
 				String name = f.getName();
 				log("name is " + name);
-				if (name.endsWith(".coinRequest") || name.endsWith(".leatherTake")) {
+				if (name.endsWith(".kebabTake")) {
 				long milliseconds = Long.parseLong(name.substring(0,name.indexOf(".")));
 				log("milliseconds is " + milliseconds);
 				if (cthaha - milliseconds < 10*1000) {
 					
-					if (name.endsWith(".coinRequest")){
-						master = MASTER.coingive;
-						coingive = COINGIVE.login;
-					}
-					if (name.endsWith(".leatherTake")){
-						master = MASTER.leathertake;
-						leathertake = LEATHERTAKE.login;
+					if (name.endsWith(".kebabTake")){
+						master = MASTER.kebabtake;
+						kebabtake = KEBABTAKE.login;
 					}
 					try{
 					Scanner scan = new Scanner(f);
@@ -214,16 +214,24 @@ public class LBurk extends Script{
 	
 	
 	/*
-	enum MASTER {scanning, coingive, leathertake};
+	enum MASTER {scanning, coingive, kebabtake};
 	MASTER master;
 	enum SCANNING {scanning, loggingOut};
 	SCANNING scanning;
 	enum COINGIVE {login,getcoinsfrombank,sendtrade,gothroughwithtrade,returntoscanning};
 	COINGIVE coingive;
-	enum LEATHERTAKE {login,
+	enum KEBABTAKE {login,
 		emptybags,sendtrade,gothroughwithtrade,openge,sellleather,collectprofit,returntoscanning
 	};*/
-	
+	public boolean loginDoubleCheck() {
+		if (getLobbyButton() != null)//very important thing
+		{
+			//this means he failed to log in , so log in again.
+			kebabtake = kebabtake.login;
+			return true;
+		}
+		return false;
+	}
 	public void onPaint(Graphics2D g)
 	{
 		
@@ -231,19 +239,21 @@ public class LBurk extends Script{
 		g.setPaint(Color.CYAN);
 		if (master == MASTER.scanning) 
 			g.drawString("LBurk: interrupt: " + scanning,10,60);
-		if (master == MASTER.coingive) 
-			g.drawString("LBurk: interrupt: " + coingive,10,60);
-		if (master == MASTER.leathertake) 
-			g.drawString("LBurk: interrupt: " + leathertake,10,60);
+		if (master == MASTER.kebabtake) 
+			g.drawString("LBurk: interrupt: " + kebabtake,10,60);
 		
 			g.drawString("LBurk:master=" + master,10,40);
-		/*g.drawString("extra pots:" + getExtraPotAmount(),10,80);
-		g.drawString("Left=" + hideAmountLeft + ",Done=" + hideAmountDone, 10,100);
-		g.drawString("TimeLeft=" + reee((int)(hideAmountLeft/26*36)),10,120);
-		*/
+		
 		
 		g.setPaint(Color.BLACK);
 		
+		
+	}
+	private static final int getCoinGiveAmount() {
+		//5.296296296296297 seconds per kebab
+		//0.1888111888111888 kebabs per second
+		//2 hours is 3600*2/5.296296296296297 = 1360
+		return 1360;
 		
 	}
 	/*enum COINGIVE {login,getcoinsfrombank,sendtrade,gothroughwithtrade,returntoscanning};
@@ -263,205 +273,14 @@ public class LBurk extends Script{
 	        return getColorPicker().isColorAt(50, 50, Color.BLACK);
 	    }
 	private LoginEvent loginEvent;
-	private void coinStateMachine() {
-		//TODO
-		
-		switch (coingive) {
-		case login:
-			
-			 if (getClient().isLoggedIn() && getLobbyButton() == null
-			  && widgets.get(548,69) != null) {
-				
-				 coingive = COINGIVE.getcoinsfrombank;
-		            break;
-		        } else if (getLobbyButton() != null && getLobbyButton().isVisible()) {
-		        
-		        	getLobbyButton().interact();
-		        	break;
-		        } else if (isOnWorldSelectorScreen()) {
-		       
-		        	getMouse().click(new RectangleDestination(getBot(), 712, 8, 42, 8));
-		        	break;
-		        } else {
-		        
-		        	switch (getClient().getLoginUIState()) {
-		            case 0:
-		            	
-		            	getMouse().click(new RectangleDestination(getBot(), 400, 280, 120, 20));
-		                break;
-		            case 1:
-		            	getMouse().click(new RectangleDestination(getBot(), 240, 310, 120, 20));
-		            //    clickLoginButton();
-		                break;
-		            case 2:
-		            	if (client.isLoggedIn()) {
-		            		
-		            	}
-		            	else
-		            	{
-		            		numtimeslmao++;
-		            		log(numtimeslmao);
-		            		if (numtimeslmao == 1) {
-		            	getKeyboard().typeString("stevenfakeaccountemail121@gmail.com");
-		               
-		            	getKeyboard().typeString(getpassword());
-		            		}
-		            	}
-		            	
-		            //    enterUserDetails();
-		                break;
-		        }
-		        }
-	        
-			
-			
-	        
-			break;
-		case getcoinsfrombank:
-			if (getLobbyButton() != null)
-			{
-				coingive = COINGIVE.login;
-				break;
-			}
-			final int cashamount = 2_400_000 / 9;
-			walking.walk(new Position(3167,3485,0));
-			if (inventory.getItems()[0] != null &&
-					inventory.getItems()[0].nameContains("Coins")
-					&& inventory.getItems()[0].getAmount() == cashamount) {
-				coingive = COINGIVE.sendtrade;
-				break;
-			}
-			try{
-			while (!bank.isOpen()) {
-				bank.open();
-			}}catch(Exception e){};
-			bank.depositAll();
-			rsleep(1000);
-			
-			//money
-			bank.withdraw("Coins",cashamount);
-			rsleep(1000);
-			if (bank.isOpen()) {
-				bank.close();
-			}
-			if (inventory.getItems()[0] != null &&
-					inventory.getItems()[0].nameContains("Coins")
-					&& inventory.getItems()[0].getAmount() == cashamount) {
-				coingive = COINGIVE.sendtrade;
-				break;
-			}
-			break;
-		case sendtrade:
-			if ((widgets.get(335,25) != null && widgets.get(335,25).isVisible())
-					||
-					(widgets.get(334,13) != null && widgets.get(334,13).isVisible()))
-			{
-				coingive = COINGIVE.gothroughwithtrade;
-				break;
-			}
-			else
-				walking.walk(new Position(3169,3482,0));
-			
-			for (Player p : getPlayers().getAll()) {
-				if (p.getName().equals(interactName)) {
-					p.interact("Trade with");
-					log("Sending trade to " + p.getName());
-					if (WaitForWidget(335,25)) {
-						
-					coingive = COINGIVE.gothroughwithtrade;
-					}
-					rsleep(1500);
-					break;
-				}
-			}
-			
-			break;
-		case gothroughwithtrade:
-			
-
-			if (
-					!(
-					(widgets.get(335,25) != null && widgets.get(335,25).isVisible())
-					||
-					(widgets.get(334,13) != null && widgets.get(334,13).isVisible())
-					)
-					)
-			{
-				coingive = COINGIVE.sendtrade;
-				break;
-			}
-			
-			/*//TODO: put this new version of widget handling in jugboys
-			Entity tradeboy = players.closest(currentTradeBoy);
-			if (tradeboy != null)
-				{
-					if ( (widgets.get(335,25) == null || widgets.get(335,25).isVisible() == false)
-							&& 
-						 (widgets.get(334,13) == null || widgets.get(334,13).isVisible() == false)) {
-				tradeboy.interact("Trade with");
-				rsleep(1000);
-					}
-				
-				//trade screen 1 widget is 335,25
-					//trade screen 2 widget is 334,13
-				if  ((widgets.get(334,13) != null && widgets.get(334,13).isVisible())
-						|| WaitForWidget(335,25)) {
-					//wait a second for him to put the goods up
-					rsleep(2000);
-					//press accept
-					click(264,180);
-					//wait for him to accept
-					if (WaitForWidget(334,13)) {
-					//press accept again
-					click(215,303);
-					//successful trade!
-					currentTradeBoy = null;
-					}
-				}
-			}
-			
-			*/
-			
-			//trade screen 1 widget is 335,25
-			//trade screen 2 widget is 334,13
-		if  ((widgets.get(334,13) != null && widgets.get(334,13).isVisible())
-				|| WaitForWidget(335,25)) {
-			//put the coins in
-			if (widgets.get(335,25) != null && widgets.get(335,25).isVisible()) 
-				inventory.getItems()[0].interact("Offer-All");
-			//press accept
-			click(264,180);
-			//wait for him to accept
-			if (WaitForWidget(334,13)) {
-			//press accept again
-			click(215,303);
-			//successful trade!
-			coingive = COINGIVE.returntoscanning;
-			
-			}
-		}
-			
-			
-			break;
-		case returntoscanning:
-			if (inventory.getItems()[0] != null) {
-				//the trade fucked up; do it again
-				coingive = COINGIVE.sendtrade; 
-				break;
-			}
-			scanning = SCANNING.loggingOut;
-			master = MASTER.scanning;
-			break;
-		}
-	}
 	/*
-	 * enum LEATHERTAKE {login,
+	 * enum KEBABTAKE {login,
 		emptybags,sendtrade,gothroughwithtrade,openge,sellleather,collectprofit,returntoscanning
 	 */
 	int numtimeslmao = 0;
-	private void leatherStateMachine() {
-		log("log in pls");
-		switch (leathertake) {
+	private void kebabStateMachine() {
+		
+		switch (kebabtake) {
 		
 			
 		case login:
@@ -469,7 +288,7 @@ public class LBurk extends Script{
 			 if (getClient().isLoggedIn() && getLobbyButton() == null
 			  && widgets.get(548,69) != null) {
 				
-				 leathertake = LEATHERTAKE.emptybags;
+				 kebabtake = KEBABTAKE.checkbags;
 		            break;
 		        } else if (getLobbyButton() != null && getLobbyButton().isVisible()) {
 		        
@@ -518,41 +337,51 @@ public class LBurk extends Script{
 	       
 			
 			
-		case emptybags:
-			if (getLobbyButton() != null)
-			{
-				leathertake = leathertake.login;
-				
+		case checkbags:
+			if (loginDoubleCheck())
 				break;
+			
+			if (inventory.getItems()[0] != null && inventory.getItems()[0].getName().equals("Coins")
+					&& inventory.getAmount("Coins") == getCoinGiveAmount()
+					) {
+				kebabtake = KEBABTAKE.sendtrade;
 			}
-			try{if (!bank.isOpen()) {
+			else {
+			try{while (!bank.isOpen()) {
 				bank.open();
+				rsleep(1500);
 			}}catch(Exception e){};
 			bank.depositAll();
+			rsleep(500);
+			if (bank.contains("Coins")) {
+				bank.withdraw("Coins",getCoinGiveAmount());
+			}
 			rsleep(1000);
-			if (inventory.isEmpty()) {
-				leathertake = LEATHERTAKE.sendtrade;
 			}
 			break;
 		case sendtrade:
-			
+			if (inventory.getItems()[0] == null
+			&& widgets.get(334,13) == null
+			&& widgets.get(335,25) == null) {
+			kebabtake = KEBABTAKE.returntoscanning;
+		}
 			if ((widgets.get(335,25) != null && widgets.get(335,25).isVisible())
 					||
 					(widgets.get(334,13) != null && widgets.get(334,13).isVisible()))
 			{
-				leathertake = LEATHERTAKE.gothroughwithtrade;
+				kebabtake = KEBABTAKE.gothroughwithtrade;
 				break;
 			}
 			else
-				walking.walk(new Position(3169,3482,0));
+				walking.walk(meetupLocation());
 			
 			for (Player p : getPlayers().getAll()) {
 				if (p.getName().equals(interactName)) {
 					p.interact("Trade with");
 					log("Sending trade to " + p.getName());
 					if (WaitForWidget(335,25)) {
-					leathertake = LEATHERTAKE.gothroughwithtrade;
-					
+					kebabtake = KEBABTAKE.gothroughwithtrade;
+
 					}
 					rsleep(1500);
 					break;
@@ -561,6 +390,11 @@ public class LBurk extends Script{
 			
 			break;
 		case gothroughwithtrade:
+			if (inventory.getItems()[0] == null
+				&& widgets.get(334,13) == null
+				&& widgets.get(335,25) == null) {
+				kebabtake = KEBABTAKE.returntoscanning;
+			}
 			//trade screen 1 widget is 335,25
 			//trade screen 2 widget is 334,13
 			if (
@@ -571,12 +405,15 @@ public class LBurk extends Script{
 					)
 					)
 			{
-				leathertake = LEATHERTAKE.sendtrade;
+				kebabtake = KEBABTAKE.sendtrade;
 				break;
 			}
 		if  ((widgets.get(334,13) != null && widgets.get(334,13).isVisible())
 				|| WaitForWidget(335,25)) {
-			//wait a second for him to put the goods up
+			//TODO: wait for him to put the kebabs in the trade? but what if he has none?
+			if (inventory.getItems()[0] != null)
+				inventory.getItems()[0].interact("Offer-all");
+			//sleep to wait for him to put items in if he has any
 			rsleep(2000);
 			//press accept
 			click(264,180);
@@ -585,55 +422,12 @@ public class LBurk extends Script{
 			//press accept again
 			click(215,303);
 			//successful trade!
-			leathertake = LEATHERTAKE.openge;
+			if (widgets.get(334,13) == null || widgets.get(334,13).isHidden())
+				kebabtake = KEBABTAKE.returntoscanning;
 			}
 		}
 			break;
-		case openge:
-			Entity clerk2 = npcs.closest("Grand Exchange Clerk");
-			if (clerk2 != null)
-				clerk2.interact("Exchange");
-			else
-				break;
-			rsleep(2000);
-			//grand exchange opening screen
-			if (WaitForWidget(465,2,1)) {
-			//click collect
-			
-			click(456,64);
-			
-			if (WaitForWidget(465,7,3)) {//create buy offer widget 
-				//click on item to "offer" it
-				inventory.getItem("Leather").interact("Offer");
-				if (WaitForWidget(465,24,21)) {
-					
-					
-					click(386,205);
-					if (WaitForWidget(162,36)) {
-						keyboard.typeString("" + (int)(getMarketPrice("Leather")*0.89)); 
-						rsleep(1500);
-						click(260,287);//click confirm
-						//wait for collect button to appear
-						if (WaitForWidget(465,6,1))
-						{
-							click(456,64);
-							leathertake = LEATHERTAKE.returntoscanning;
-							//fall back and let base case handle the state change
-						}
-						//click on it
-						
-					}
-					
-					}
-				
-			}
-			}
-			
-			break;
-		case sellleather:
-			break;
-		case collectprofit:
-			break;
+		
 		case returntoscanning:
 			scanning = SCANNING.loggingOut;
 			master = MASTER.scanning;

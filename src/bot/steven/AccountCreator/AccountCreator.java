@@ -18,7 +18,16 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class AccountCreator {
-
+	private String password1,password2;
+	void getpasswords() {
+		try{
+		Scanner scan = new Scanner(new File("C:\\Users\\Yoloswag\\osbot\\data\\logininfo.btw"));
+		password1 = scan.nextLine();
+		password2 = scan.nextLine();
+		}catch(Exception e){e.printStackTrace();}
+	}
+	private String getpassword() { return password1; }
+	private String getpassword2() {return password2; }
 	private void runShellCommand(final String command) {
 try{
 			
@@ -33,7 +42,7 @@ try{
 	private int currentNumber = -1;
 	private int startingNumber = -1;
 	public void begin() {
-		
+		getpasswords();
 		JFrame f = new JFrame("AccountCreator by Steven Ventura");
 		f.addWindowListener(new WindowListener() {
 			public void windowClosing(WindowEvent e) {

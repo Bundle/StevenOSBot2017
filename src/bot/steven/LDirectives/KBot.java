@@ -18,8 +18,8 @@ import org.osbot.rs07.api.ui.RS2Widget;
 import org.osbot.rs07.input.mouse.RectangleDestination;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
-@ScriptManifest(author = "Steven Ventura", info = "LBot", logo = "", name = "LBot", version = 0)
-public class LBot extends Script{
+@ScriptManifest(author = "Steven Ventura", info = "KBot", logo = "", name = "KBot", version = 0)
+public class KBot extends Script{
 	private String password1,password2;
 	void getpasswords() {
 		try{
@@ -28,16 +28,16 @@ public class LBot extends Script{
 		password2 = scan.nextLine();
 		}catch(Exception e){e.printStackTrace();}
 	}
+	
 	private String getpassword() { return password1; }
 	final static double K = 1000;
 	enum STATEMACHINE {
 		locationcheck,
-		traveltogefromspawn1,traveltogefromspawn2,
+		traveltodesertfromspawn1,traveltodesertfromspawn2,
 		requestburkgivecoins,waitfortradecoins,
-		returntoge1,gotodesert1,returntoge2,gotodesert2,tanhides1,tanhides2,tanhides3,tanhides4,completetradecoins,
-		requestburktakehides,waitfortradehides,completetradehides,
-		auditbank,buycowhides,logoutretire,
-		notefinishedhidesfrombank,
+		completetradecoins,
+		kebab1,kebab2,kebab3,
+		notekebabsfrombank,
 		requesttutorial,
 		waitingforlogin,
 		loginstate1,loginstate2,loginstate3,loginstate4
@@ -50,18 +50,32 @@ public class LBot extends Script{
 			rsleep(500);
 		}
 	}
+	private Position meetupLocation() {
+		int x,y,z;
+		x=3270;
+		y=3163;
+		z = 0;
+		
+		if (Math.random()<0.50)
+			x=x+1;
+		else
+			x=x-1;
+		if (Math.random()<0.50)
+			y=y+1;
+		else
+			y=y-1;
+		
+		
+		return new Position(x,y,z);
+	}
 	public void onPaint(Graphics2D g) {
 		
 		
 		
 		g.setPaint(Color.CYAN);
 		
-		g.drawString("LBot # " + getParameters(),10,60);
-			g.drawString("LBot:state=" + state,10,40);
-		/*g.drawString("extra pots:" + getExtraPotAmount(),10,80);
-		g.drawString("Left=" + hideAmountLeft + ",Done=" + hideAmountDone, 10,100);
-		g.drawString("TimeLeft=" + reee((int)(hideAmountLeft/26*36)),10,120);
-		*/
+		g.drawString("KBot # " + getParameters(),10,60);
+			g.drawString("KBot:state=" + state,10,40);
 		
 		g.setPaint(Color.BLACK);
 	}
@@ -110,18 +124,19 @@ public class LBot extends Script{
 		mouse.move(x+(int)(3*Math.random()),y+(int)(3*Math.random()));
 		mouse.click(LEFTCLICK);
 	}
-	private void openTannerDoor() {
+	private void openKebabDoor() {
 		for (RS2Object o : objects.getAll()) {
 			try{
 			WallObject doorplease = (WallObject)o;
-			//door.x is 3277 door.y is 3191
-			if (doorplease.getX() == 3277 && doorplease.getY() == 3191) {
+			//door coordinate for closed door: 3275,3180
+			if (doorplease.getX() == 3275 && doorplease.getY() == 3180) {
 				doorplease.interact("Open");
 				break;
 			}
 			}catch(Exception e){}
 		}
 	}
+	private int kebabsBought = 0;
 	 private RS2Widget getLobbyButton() {
 	    	try{
 	        return widgets.get(378,76);//changed by hand on 3/15/18 after an update
@@ -134,6 +149,7 @@ public class LBot extends Script{
 	 private boolean isOnWorldSelectorScreen() {
 	        return getColorPicker().isColorAt(50, 50, Color.BLACK);
 	    }
+	 Entity Karim = null;
 	long lastfiletime = 0;
 	int numtimeslmao = 0;
 	@Override
@@ -196,13 +212,15 @@ public class LBot extends Script{
 			if (y > 9000 || (x < 3220 && y < 3208)) {
 				state = STATEMACHINE.requesttutorial;
 			}
-			else if (x > 3260 && y < 3330)
+			else
+				state = STATEMACHINE.traveltodesertfromspawn1;
+			/*else if (x > 3260 && y < 3330)
 			{
 				state = STATEMACHINE.gotodesert1;
 			}
 			else {
 				state = STATEMACHINE.traveltogefromspawn1;
-			}
+			}*/
 			break;
 		
 		
@@ -213,102 +231,63 @@ public class LBot extends Script{
 				log("creating file " + getDirectoryData() + "\\" + getParameters() + ".tutorialRequest");
 			PrintWriter out = new PrintWriter(f);
 			out.println(System.currentTimeMillis());
-			out.println("LBot");
+			out.println("KBot");
 			out.close();
 			System.exit(0);
 			}catch(Exception e){log("file error :3c");System.exit(-1);}
 			System.exit(-1);
 			
 			break;
-		case gotodesert1:
+		case traveltodesertfromspawn1:
 		{
 			int closest = -1;
 			double closestdistance = Double.MAX_VALUE;
-			for (int i = 0; i < GETODESERT.length; i++) {
-				double pls = Math.sqrt(Math.pow(myPlayer().getX()-GETODESERT[i][0],2)+Math.pow(
-						myPlayer().getY()-GETODESERT[i][1],2));
+			for (int i = 0; i < LUMBRIDGETODESERT.length; i++) {
+				double pls = Math.sqrt(Math.pow(myPlayer().getX()-LUMBRIDGETODESERT[i][0],2)+Math.pow(
+						myPlayer().getY()-LUMBRIDGETODESERT[i][1],2));
 				if (pls < closestdistance)
 				{
 				closestdistance = pls;
 				closest = i;
 				}
 			}
-			iGOTODESERT = closest;
-			state = STATEMACHINE.gotodesert2;
+			iLUMBRIDGETODESERT = closest;
+			state = STATEMACHINE.traveltodesertfromspawn2;
 		}
 			break;
-		case gotodesert2:
+		case traveltodesertfromspawn2:
 		{
-			walking.walk(new Position(GETODESERT[iGOTODESERT][0],
-					GETODESERT[iGOTODESERT][1],
+			walking.walk(new Position(LUMBRIDGETODESERT[iLUMBRIDGETODESERT][0],
+					LUMBRIDGETODESERT[iLUMBRIDGETODESERT][1],
 					0));
 			waitForMovements();
 
 double pls = 
-		Math.sqrt(Math.pow(myPlayer().getX()-GETODESERT[iGOTODESERT][0],2) + 
-				Math.pow(myPlayer().getY()-GETODESERT[iGOTODESERT][1],2));
+		Math.sqrt(Math.pow(myPlayer().getX()-LUMBRIDGETODESERT[iLUMBRIDGETODESERT][0],2) + 
+				Math.pow(myPlayer().getY()-LUMBRIDGETODESERT[iLUMBRIDGETODESERT][1],2));
 		
 if (pls < 4)
-	iGOTODESERT++;
+	iLUMBRIDGETODESERT++;
 else
 	log("uhh he aint movin xD");
 
 
-if (iGOTODESERT == GETODESERT.length) {
-	state = STATEMACHINE.tanhides1;
+if (iLUMBRIDGETODESERT == LUMBRIDGETODESERT.length) {
+	state = STATEMACHINE.kebab1;
 	
 }
 		}
 			break;
 			
-		case traveltogefromspawn1:
-		{
-			int closest = -1;
-			double closestdistance = Double.MAX_VALUE;
-			for (int i = 0; i < LUMBRIDGETOGE.length; i++) {
-				double pls = Math.sqrt(Math.pow(myPlayer().getX()-LUMBRIDGETOGE[i][0],2)+Math.pow(
-						myPlayer().getY()-LUMBRIDGETOGE[i][1],2));
-				if (pls < closestdistance)
-				{
-				closestdistance = pls;
-				closest = i;
-				}
-			}
-			iLUMBRIDGETOGE = closest;
-			state = STATEMACHINE.traveltogefromspawn2;
-		}
-			break;
-		case traveltogefromspawn2:
-		{
-			walking.walk(new Position(LUMBRIDGETOGE[iLUMBRIDGETOGE][0],
-					LUMBRIDGETOGE[iLUMBRIDGETOGE][1],
-					0));
-			waitForMovements();
-
-double pls = 
-		Math.sqrt(Math.pow(myPlayer().getX()-LUMBRIDGETOGE[iLUMBRIDGETOGE][0],2) + 
-				Math.pow(myPlayer().getY()-LUMBRIDGETOGE[iLUMBRIDGETOGE][1],2));
 		
-if (pls < 4)
-	iLUMBRIDGETOGE++;
-else
-	log("uhh he aint movin xD");
-
-
-if (iLUMBRIDGETOGE == LUMBRIDGETOGE.length) {
-	state = STATEMACHINE.auditbank;
-
-	
-}
-		}
-			break;
 		case requestburkgivecoins:
+			tradeFlag = false;
 			//rendevooooooooooooooooo
-			walking.walk(new Position(3169,3482,0));
+			walking.walk(meetupLocation());
 			lastfiletime = System.currentTimeMillis();
 			try{
-				File f = new File(getDirectoryData() + "\\" + System.currentTimeMillis() + ".coinRequest");
-				log("creating file " + getDirectoryData() + "\\" + System.currentTimeMillis() + ".coinRequest");
+				File f = new File(getDirectoryData() + "\\" + System.currentTimeMillis() + ".kebabTake");
+				log("creating file " + getDirectoryData() + "\\" + System.currentTimeMillis() + ".kebabTake");
 			PrintWriter out = new PrintWriter(f);
 			out.println(myPlayer().getName());
 			out.close();
@@ -328,159 +307,141 @@ if (iLUMBRIDGETOGE == LUMBRIDGETOGE.length) {
 			}
 			
 			break;
-		case returntoge1:
-		{
-			int closest = -1;
-			double closestdistance = Double.MAX_VALUE;
-			for (int i = 0; i < DESERTTOGE.length; i++) {
-				double pls = Math.sqrt(Math.pow(myPlayer().getX()-DESERTTOGE[i][0],2)+Math.pow(
-						myPlayer().getY()-DESERTTOGE[i][1],2));
-				if (pls < closestdistance)
-				{
-				closestdistance = pls;
-				closest = i;
-				}
-			}
-			iDESERTTOGE = closest;
-			state = STATEMACHINE.returntoge2;
-		}
-			break;
-		case returntoge2:
-		{
-			walking.walk(new Position(DESERTTOGE[iDESERTTOGE][0],
-					DESERTTOGE[iDESERTTOGE][1],
-					0));
-			waitForMovements();
-
-double pls = 
-		Math.sqrt(Math.pow(myPlayer().getX()-DESERTTOGE[iDESERTTOGE][0],2) + 
-				Math.pow(myPlayer().getY()-DESERTTOGE[iDESERTTOGE][1],2));
-		
-if (pls < 4)
-	iDESERTTOGE++;
-else
-	log("uhh he aint movin xD");
-
-
-if (iDESERTTOGE == DESERTTOGE.length) {
-	state = STATEMACHINE.auditbank;
-
-	
-}
-		}
-			break;
-		case tanhides1:
-		{
-			
-			
-			
-			
+		case kebab1:
+			openKebabDoor();
+			walking.walk(new Position(3269,3167,0));
+			//check bank for kebabs.
+			try{
 			while(!bank.isOpen()) {
 				bank.open();
 				rsleep(500);
-				}
-			
-			if (bank.isOpen() && bank.getAmount("Cowhide") + inventory.getAmount("Cowhide") == 0) {
-				state = STATEMACHINE.returntoge1;
+			}
+			}catch(Exception e){};
+			if (!bank.isOpen()) {
+				state = STATEMACHINE.kebab1;
+				break;
+			}
+			//if there are no kebabs or there is no gold, then do notekebabsfrombank.
+			if (inventory.getAmount("Coins") + bank.getAmount("Coins") < 30) {
+				state = STATEMACHINE.notekebabsfrombank;
 				break;
 			}
 			
-			rsleep(100);
 			
-
+			if (inventory.getItems()[1] != null)
+			{
+				if (inventory.getItems()[1].getName().equals("Kebab"))
+				{
+					inventory.getItems()[1].interact("Deposit-all");
+				}
+				else
+				{
+					bank.depositAll();
+				}
+			}
 			
-			if (inventory.getItems()[0] == null || !inventory.getItems()[0].getName().equals("Coins")) {
+			if (inventory.getItems()[0] == null || !inventory.getItems()[0].getName().equals("Coins"))
+			{
 				bank.depositAll();
-				rsleep(1300);
+			}
+			
+			
+			if (bank.getAmount("Coins") > 0) {
 				bank.withdrawAll("Coins");
 			}
-			else if (inventory.getItems()[1] != null){
-				inventory.getItems()[1].interact("Deposit-All");
+			
+			//make sure theres just coins in his bag
+			boolean justcoins = true;
+			for (int i = 1; i <= 27; i++) {
+				if (inventory.getItems()[i] != null)
+					justcoins = false;
+			}
+			
+			if (!justcoins) {
+				bank.depositAll();
+				state = STATEMACHINE.kebab1;
+				break;
 			}
 			
 			
-			if (bank.isBankModeEnabled(Bank.BankMode.WITHDRAW_NOTE)) {
-			bank.enableMode(Bank.BankMode.WITHDRAW_ITEM);
-			}
-			rsleep(600);
-			bank.withdrawAll("Cowhide");
 			
+			if (inventory.getItems()[0] != null && inventory.getItems()[0].getName().equals("Coins"))
+				state = STATEMACHINE.kebab2;
+			
+			
+			
+			
+			
+			
+			break;
+		case kebab2:
 			while(bank.isOpen()) {
-				rsleep(400);
 				bank.close();
+				rsleep(500);
 			}
 			
-			state = STATEMACHINE.tanhides2;
-		}
-			break;
-		case tanhides2:
-			//run to the tanner
-			//enable run
 			
-			//walk towards tanner
-			walking.walk(new Position(3279,3191,0));
-			
-			while(myPlayer().isAnimating() || myPlayer().isMoving())
-			{
-				rsleep(1500);
-			}
-			
-			//if door is closed, then open it.
-			openTannerDoor();
-			
-			state = STATEMACHINE.tanhides3;
-			
-			break;
-		case tanhides3:
-			openTannerDoor();
-			if (inventory.getItems()[1] != null &&
-					inventory.getItems()[1].getName().equals("Cowhide"))
-			{
-			Entity ellis = npcs.closest("Ellis");
-			ellis.interact("Trade");
-			while(myPlayer().isAnimating() || myPlayer().isMoving())
-			{
-				//slowed it down for reliability
-				rsleep(150);
-			}
-			
-			//TODO: waitforwidget tanner
-			WaitForWidget(324,1);
-			if (widgets.get(324,1) != null && widgets.get(324,1).isVisible())
-			{
-			widgets.get(324,1).interact("Tan All");
-			rsleep(1000);
-			}
-			}
-			
-			openTannerDoor();
-			if (!(inventory.getItems()[1] != null &&
-					inventory.getItems()[1].getName().equals("Cowhide"))){
-			state = STATEMACHINE.tanhides4;
-			}
-			break;
-		case tanhides4:
-			double pls2 = 
-			Math.sqrt(Math.pow(myPlayer().getX()-3278,2) + 
-					Math.pow(myPlayer().getY()-3179,2));
-			
-	if (pls2 < 4)
-	{
-		state = STATEMACHINE.tanhides1;
-	}
-	else
-	{
-			openTannerDoor();
-			walking.walk(new Position(3278,3179,0));
+			walking.walk(new Position(3276,3172,0));
 			rsleep(500);
-			walking.walk(new Position(3278,3179,0));
-			while(myPlayer().isAnimating() || myPlayer().isMoving())
-			{
-				rsleep(150);
-			}
-	}
+			waitForMovements();
+			
+			
+			state = STATEMACHINE.kebab3;
+			
+			
+			
+			
 			
 			break;
+		case kebab3:
+			
+Karim = npcs.closest("Karim");
+			
+			
+			if (Karim == null)
+			{
+				walking.walk(new Position(3269,3167,0));
+				break;
+			}
+			else
+				Karim.interact("Talk-To");
+			rsleep(50);//for reliability
+			
+			
+		
+			
+			
+			if (WaitForWidget(231,2)) {
+			click(300,454);
+			if (WaitForWidget(219,0,2)) {
+			click(257,432);
+			rsleep(10);
+			if (WaitForWidget(217,2)) {
+			click(202,449);
+			kebabsBought++;
+			}
+			}
+			}
+			rsleep(250);
+			
+			
+			
+			
+			//check if thing is full
+			if ((inventory.getAmount("Coins") > 0 && 
+					inventory.getAmount("Coins") < 25) ||
+					(inventory.getItems()[26] != null && inventory.getItems()[26].nameContains("Kebab")))
+			{
+				state = STATEMACHINE.kebab1;
+			}
+			else
+			{
+				state = STATEMACHINE.kebab3;	
+			}
+			
+			break;
+		
+		
 		case completetradecoins:
 			//get the coins from him
 			
@@ -501,6 +462,9 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 			//trade screen 2 widget is 334,13
 			if  ((widgets.get(334,13) != null && widgets.get(334,13).isVisible())
 					|| WaitForWidget(335,25)) {
+				//TODO: manage the new items here
+				if (inventory.getItems()[0] != null)
+					inventory.getItems()[0].interact("Offer-all");
 				//wait for him to put the coins in
 				rsleep(2000);
 				//press accept
@@ -510,7 +474,7 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 				//press accept again
 				click(215,303);
 				//successful trade!
-				state = STATEMACHINE.buycowhides;
+				state = STATEMACHINE.kebab1;
 				
 				}
 			}
@@ -518,239 +482,49 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 			
 			
 			break;
-		case notefinishedhidesfrombank:
+		case notekebabsfrombank:
+			boolean hasnokebabs = false;
 			while (!bank.isOpen()) {
 				bank.open();
+				rsleep(500);
 			}
 			
+			if (!bank.isOpen())
+			{
+				state = STATEMACHINE.notekebabsfrombank;
+				break;
+			}
+			
+			
 			bank.depositAll();
+			
+			if (bank.getAmount("Kebab") + inventory.getAmount("Kebab") == 0) {
+				hasnokebabs = true;
+			}
+			
 			rsleep(1500);
 			if (bank.isBankModeEnabled(Bank.BankMode.WITHDRAW_ITEM)) {
 				bank.enableMode(Bank.BankMode.WITHDRAW_NOTE);
 				rsleep(500);
 				}
 			
-			bank.withdrawAll("Leather");
+			bank.withdrawAll("Kebab");
 			rsleep(500);
-			bank.withdrawAll("Coins");
 			
-			if (inventory.getItems()[0] != null &&
-					inventory.getItems()[0].getName().equals("Leather")
-					&& (inventory.getItems()[1] != null
-						&& inventory.getItems()[1].getName().equals("Coins")
-							))
+			if (hasnokebabs && inventory.isEmpty()
+					|| (inventory.getItems()[0] != null && inventory.getItems()[1].getName().equals("Kebab")))
 			{
 				if (bank.isOpen())
 					bank.close();
 				
-				state = STATEMACHINE.requestburktakehides;
-				
-			}
-			
-			
-			
-			break;
-		case requestburktakehides:
-			//rendevooooooooooooooooo
-			walking.walk(new Position(3169,3482,0));
-			lastfiletime = System.currentTimeMillis();
-			try{
-				File f = new File(getDirectoryData() + "\\" + System.currentTimeMillis() + ".leatherTake");
-				log("creating file " + getDirectoryData() + "\\" + System.currentTimeMillis() + ".leatherTake");
-			PrintWriter out = new PrintWriter(f);
-			out.println(myPlayer().getName());
-			out.close();
-			}catch(Exception e){log("file error :3c");}
-			
-			state = STATEMACHINE.waitfortradehides;
-			
-			break;
-		case waitfortradehides:
-			if (tradeFlag) {
-				//wait for trade variable to be flipped
-				state = STATEMACHINE.completetradehides;
-			}
-			else if (System.currentTimeMillis() - lastfiletime > 15*K) {
-				//its been 15 seconds, try again
-				state = STATEMACHINE.requestburktakehides;
-			}
-			break;
-		case completetradehides:
-
-
-			//make sure i am not already trading.
-			if ((widgets.get(334,13) == null || widgets.get(334,13).isVisible() == false)
-					&&
-					(widgets.get(335,25) == null || widgets.get(335,25).isVisible() == false))
-			for (Player p : getPlayers().getAll()) {
-				if (p.getName().equals("LordBurk")) {
-					p.interact("Trade with");
-					rsleep(1500);
-					break;
-				}
-			}
-			
-			//trade screen 1 widget is 335,25
-			//trade screen 2 widget is 334,13
-		if  ((widgets.get(334,13) != null && widgets.get(334,13).isVisible())
-				|| WaitForWidget(335,25)) {
-			//put the hides in
-			if (inventory.getItems()[0] != null)
-				inventory.getItems()[0].interact("Offer-All");
-			rsleep(200);
-			if (inventory.getItems()[1] != null)
-				inventory.getItems()[1].interact("Offer-All");
-			//press accept
-			click(264,180);
-			//wait for him to accept
-			if (WaitForWidget(334,13)) {
-			//press accept again
-			click(215,303);
-			//successful trade!
-			state = STATEMACHINE.logoutretire;
-			
-			}
-		}
-			break;
-		case auditbank:
-			while(!bank.isOpen())
-			{
-				bank.open();
-			}
-			
-			if (bank.getAmount("Coins") + inventory.getAmount("Coins") > 30*K)
-			{
-				state = STATEMACHINE.buycowhides;
-				
-				
-			}
-			else if (bank.getAmount("Leather") + inventory.getAmount("Leather") > 0)
-			{
-				state = STATEMACHINE.notefinishedhidesfrombank;
-				tradeFlag = false;
-				
-			}
-			else if (bank.getAmount("Cowhide") + inventory.getAmount("Cowhide") > 0)
-			{
-				state = STATEMACHINE.gotodesert1;
-				
-				
-			}
-			else
-			{
 				state = STATEMACHINE.requestburkgivecoins;
-				tradeFlag = false;
-				
-			}
-			
-			if (bank.isOpen()) {
-				bank.close();
-			}
-			
-			
-			
-			break;
-		case buycowhides:
-			
-			
-			String itemName = "Cowhide";
-			
-			
-			
-			
-			while (!bank.isOpen()) {
-				bank.open();
-				rsleep(1000);
-			}
-			
-			if (bank.contains("Coins"))
-			{
-				bank.depositAll();
-				rsleep(1000);
-				bank.withdrawAll("Coins");
-			}
-			
-			if (inventory.getItems()[0] == null ||
-					!inventory.getItems()[0].getName().equals("Coins"))
-			{
-				log("wtf idiot didnt withdarw coins");
-				break;
-			}
-				
-			rsleep(1000);
-			
-			if (bank.isOpen()) {
-				bank.close();
-			}
-			
-			Entity clerk = npcs.closest("Grand Exchange Clerk");
-			if (clerk != null)
-				clerk.interact("Exchange");
-			
-			
-			//click collect button btw
-			rsleep(1500);
-			click(456,64);
-			
-			
-			if (WaitForWidget(465,7,3)) {//create buy offer widget 
-				
-				click(456,64);
-				rsleep(800);
-				click(59,145);
-				if (WaitForWidget(465,24,21)) {
-					click(113,117);
-					rsleep(1500);
-					keyboard.typeString(itemName);
-					if (WaitForWidget(162,41,1)) {
-				if (widgets.get(162,41,1).getMessage().equals(itemName)) {
-					//click on item
-					click(85,383);
-					rsleep(3000);
-					//click on price dots
-					click(386,205);
-					if (WaitForWidget(162,36)) {
-						rsleep(1500);
-						keyboard.typeString(""+(int)(getMarketPrice(itemName)*1.11)); 
-						rsleep(3000);
-						//click on amount to buy ...
-						click(233,209);
-						rsleep(3000);
-						//type in amount to buy
-						keyboard.typeString(""+getLeatherAmountToBuy());
-						rsleep(1500);
-						
-						click(260,287);//click confirm
-						//wait for collect button to appear
-						if (WaitForWidget(465,6,1))
-						{
-							click(456,64);
-						}
-						
-						state = STATEMACHINE.auditbank;
-						}
-					}
-					}
-					
-				}
 				
 			}
 			
 			
 			
-			break;
-		case logoutretire:
-			try{
-			File f = new File(getDirectoryData() + "\\" + getParameters() + ".LRetire");
-			log("creating file " + getDirectoryData() + "\\" + getParameters() + ".LRetire");
-		PrintWriter out = new PrintWriter(f);
-		out.println(myPlayer().getName());
-		out.close();
-		System.exit(0);
-			}catch(Exception e){e.printStackTrace();}
 			break;
 		
-				
 		
 		}
 		
@@ -802,6 +576,9 @@ if (iDESERTTOGE == DESERTTOGE.length) {
 	
 	}
 	
+	int[][] LUMBRIDGETODESERT = {{3232, 3231},{3233, 3239},{3232, 3249},{3231, 3259},{3232, 3261},{3241, 3263},{3240, 3269},{3240, 3276},{3240, 3282},{3239, 3290},{3239, 3298},{3242, 3308},{3249, 3318},{3255, 3322},{3257, 3323},{3263, 3323},{3271, 3330},{3277, 3331},{3279, 3320},{3273, 3313},{3273, 3301},{3273, 3285},{3273, 3276},{3272, 3268},{3272, 3260},{3272, 3246},{3272, 3238},{3272, 3230},{3272, 3219},{3272, 3209},{3272, 3200},{3269, 3188},{3275, 3175},{3272, 3167},{3270, 3167},
+	};//TODO
+	int iLUMBRIDGETODESERT = -1;
 	
 	/*
 	 * mesh for LUMBRIDGESPAWN TO G E:

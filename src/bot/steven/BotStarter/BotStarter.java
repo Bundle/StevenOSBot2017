@@ -5,6 +5,7 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.Scanner;
 import java.util.TreeMap;
 
 import javax.swing.JButton;
@@ -13,7 +14,17 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 public class BotStarter {
-	
+	private String password1,password2;
+	void getpasswords() {
+		try{
+		Scanner scan = new Scanner(new File("C:\\Users\\Yoloswag\\osbot\\data\\logininfo.btw"));
+		password1 = scan.nextLine();
+		password2 = scan.nextLine();
+		}catch(Exception e){e.printStackTrace();}
+	}
+	static final String jarver = "2.5.3";
+	private String getpassword() { return password1; }
+	private String getpassword2() {return password2; }
 	public int[] bannedAccounts = {
 		1,2,3,4,5,6,7,8,9,10,
 		11,12,13,14,15,16,17,18,19,20,
@@ -71,7 +82,8 @@ public class BotStarter {
 	};
 	public int[] LBots = {
 		
-			197,198,199,200,201	,202,203,204,205
+			197,198,199,200,201	,202,203,204,205,
+			206,207,208,209
 	};
 	public int[] doneLBotting =  {
 			
@@ -154,6 +166,7 @@ public class BotStarter {
 	JFrame f;
 	public void begin()
 	{
+		getpasswords();
 	f = new JFrame("OSBot Starter Steven Ventura");
 	f.setSize(800,800);
 	f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -277,7 +290,7 @@ public class BotStarter {
 			}
 			
 			final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
-					+ "OSBot 2.5.2.jar\" "
+					+ "OSBot " + jarver + ".jar\" "
 					+ "-login gangsthurh:" + getpassword2() + " -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
 					+ getpassword() + ":1234"
