@@ -167,7 +167,10 @@ public class LMother {
 				
 				if (g2.waitForExtraProcesses(g1, 15000, 2)){
 					ArrayList<Integer> newpidlist = g2.extraProcesses(g1);
-					ArrayList<Integer> pidHandlesOnMultipleTutorials = newpidlist;
+					pidHandlesOnMultipleTutorials = newpidlist;
+					for (int i = 0; i < pidHandlesOnMultipleTutorials.size(); i++) {
+						System.out.println("Detected process: " + pidHandlesOnMultipleTutorials.get(i));
+					}
 					/*if (newpidlist.size() > 1) {
 						System.out.println("@@@: More than 1 new instance found? dumping list@@@");
 						for (int i = 0; i < newpidlist.size(); i++) {
