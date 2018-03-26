@@ -261,8 +261,23 @@ public class LMother {
 	}
 	
 	private void addBot(int number, String type) {
+		
+		try{
+			File f = new File("C:\\Users\\Yoloswag\\OSBot\\data\\" + number + ".banned");
+			if (f.exists())
+			{
+				System.out.println("Error: " + number + " is banned.");
+				jta.append("Error: " + number + " is banned.\r\n");
+				return;
+			}
+			
+			
+			
+		}catch(Exception e){e.printStackTrace();}
+		
+		
 		System.out.println("starting " + type + " on " + number);
-		jta.append("starting LBot on " + number + "\r\n");
+		jta.append("starting " + type + " on " + number + "\r\n");
 		////////////
 		
 		/////////////

@@ -253,7 +253,7 @@ public class KBurk extends Script{
 		//5.296296296296297 seconds per kebab
 		//0.1888111888111888 kebabs per second
 		//2 hours is 3600*2/5.296296296296297 = 1360
-		return 1360;
+		return 1360*3;
 		
 	}
 	/*enum COINGIVE {login,getcoinsfrombank,sendtrade,gothroughwithtrade,returntoscanning};
@@ -360,10 +360,11 @@ public class KBurk extends Script{
 			}
 			break;
 		case sendtrade:
-			if (inventory.getItems()[0] == null
+			if ((inventory.getItems()[0] == null || inventory.getItems()[0].getName().equals("Kebab"))
 			&& widgets.get(334,13) == null
 			&& widgets.get(335,25) == null) {
 			kebabtake = KEBABTAKE.returntoscanning;
+			break;
 		}
 			if ((widgets.get(335,25) != null && widgets.get(335,25).isVisible())
 					||

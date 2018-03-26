@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Scanner;
 import java.util.TreeMap;
 
@@ -15,6 +17,7 @@ import org.osbot.rs07.api.model.RS2Object;
 import org.osbot.rs07.api.model.WallObject;
 import org.osbot.rs07.api.ui.Message;
 import org.osbot.rs07.api.ui.RS2Widget;
+import org.osbot.rs07.constants.ResponseCode;
 import org.osbot.rs07.input.mouse.RectangleDestination;
 import org.osbot.rs07.script.Script;
 import org.osbot.rs07.script.ScriptManifest;
@@ -40,7 +43,8 @@ public class KBot extends Script{
 		notekebabsfrombank,
 		requesttutorial,
 		waitingforlogin,
-		loginstate1,loginstate2,loginstate3,loginstate4
+		loginstate1,loginstate2,loginstate3,loginstate4,
+	
 	};
 	STATEMACHINE state;
 	private void waitForMovements()
@@ -118,6 +122,33 @@ public class KBot extends Script{
 		
 		
 	}
+	@Override
+	 public final void onResponseCode(final int responseCode) throws InterruptedException {
+	        if(ResponseCode.isDisabledError(responseCode)) {
+	            log("Login failed, account is disabled");
+	          //create banned file
+				try{
+				File f2 = new File(getDirectoryData() + "\\" + getParameters() + ".banned");
+				log("creating file " + getDirectoryData() + "\\" + getParameters() + ".banned");
+			PrintWriter out2 = new PrintWriter(f2);
+			out2.println(System.currentTimeMillis());
+			out2.println("rip " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
+					new Date(System.currentTimeMillis())));
+			out2.close();
+				
+				
+				}catch(Exception e){};
+				//close client
+				System.exit(0);
+	            return;
+	        }
+
+	        if(ResponseCode.isConnectionError(responseCode)) {
+	            log("Connection error, attempts exceeded");
+	            
+	            return;
+	        }
+	    }
 	final boolean LEFTCLICK=false,RIGHTCLICK=true;
 	private void click(int x, int y)
 	{
@@ -202,7 +233,6 @@ public class KBot extends Script{
 		        }
         
     break;
-			
 			
 			
 		case locationcheck:
@@ -428,8 +458,7 @@ Karim = npcs.closest("Karim");
 			
 			
 			//check if thing is full
-			if ((inventory.getAmount("Coins") > 0 && 
-					inventory.getAmount("Coins") < 25) ||
+			if (inventory.getAmount("Coins") == 0 || 
 					(inventory.getItems()[26] != null && inventory.getItems()[26].nameContains("Kebab")))
 			{
 				state = STATEMACHINE.kebab1;
@@ -502,17 +531,17 @@ Karim = npcs.closest("Karim");
 				hasnokebabs = true;
 			}
 			
-			rsleep(1500);
+			
 			if (bank.isBankModeEnabled(Bank.BankMode.WITHDRAW_ITEM)) {
 				bank.enableMode(Bank.BankMode.WITHDRAW_NOTE);
 				rsleep(500);
 				}
 			
 			bank.withdrawAll("Kebab");
-			rsleep(500);
+			rsleep(1500);
 			
 			if (hasnokebabs && inventory.isEmpty()
-					|| (inventory.getItems()[0] != null && inventory.getItems()[1].getName().equals("Kebab")))
+					|| (inventory.getItems()[0] != null && inventory.getItems()[0].getName().equals("Kebab")))
 			{
 				if (bank.isOpen())
 					bank.close();

@@ -83,7 +83,8 @@ public class BotStarter {
 	public int[] LBots = {
 		
 			197,198,199,200,201	,202,203,204,205,
-			206,207,208,209
+			206,207,208,209,
+			210,211
 	};
 	public int[] doneLBotting =  {
 			
