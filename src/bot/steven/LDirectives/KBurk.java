@@ -121,6 +121,9 @@ public class KBurk extends Script{
 	
 	@Override
 	public int onLoop() throws InterruptedException {
+		try{
+			Thread.sleep(1);
+		}catch(Exception e){}
 		switch (master) {
 		case scanning:
 			scanStateMachine();
@@ -184,6 +187,11 @@ public class KBurk extends Script{
 					}catch(Exception e){log(e.getMessage());}
 					break;//break out of for
 													}
+				else
+				{
+					//delete the file
+					f.delete();
+				}
 				
 				
 					}
@@ -224,10 +232,11 @@ public class KBurk extends Script{
 		emptybags,sendtrade,gothroughwithtrade,openge,sellleather,collectprofit,returntoscanning
 	};*/
 	public boolean loginDoubleCheck() {
-		if (getLobbyButton() != null)//very important thing
+		if (getLobbyButton() != null
+				|| !getClient().isLoggedIn())//very important thing
 		{
 			//this means he failed to log in , so log in again.
-			kebabtake = kebabtake.login;
+			kebabtake = KEBABTAKE.login;
 			return true;
 		}
 		return false;
@@ -238,11 +247,11 @@ public class KBurk extends Script{
 		
 		g.setPaint(Color.CYAN);
 		if (master == MASTER.scanning) 
-			g.drawString("LBurk: interrupt: " + scanning,10,60);
+			g.drawString("KBurk: interrupt: " + scanning,10,60);
 		if (master == MASTER.kebabtake) 
-			g.drawString("LBurk: interrupt: " + kebabtake,10,60);
+			g.drawString("KBurk: interrupt: " + kebabtake,10,60);
 		
-			g.drawString("LBurk:master=" + master,10,40);
+			g.drawString("KBurk:master=" + master,10,40);
 		
 		
 		g.setPaint(Color.BLACK);
@@ -253,7 +262,7 @@ public class KBurk extends Script{
 		//5.296296296296297 seconds per kebab
 		//0.1888111888111888 kebabs per second
 		//2 hours is 3600*2/5.296296296296297 = 1360
-		return 1360*3;
+		return (int)(1360*2.5f);
 		
 	}
 	/*enum COINGIVE {login,getcoinsfrombank,sendtrade,gothroughwithtrade,returntoscanning};

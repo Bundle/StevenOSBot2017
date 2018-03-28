@@ -288,7 +288,7 @@ public class JustLogin extends Script{
 			}
 		}
 		
-		getrunnerboy g = new getrunnerboy("java.exe");
+		/*getrunnerboy g = new getrunnerboy("java.exe");
 		g.populatepidlist();
 		try{
 		final Runtime rt = Runtime.getRuntime();
@@ -306,172 +306,53 @@ public class JustLogin extends Script{
 		}
 		
 		
-		/*
-		class pls{
-			public String name;
-			public int pid;
-			public pls(String name, int pid) {
-				this.name=name;this.pid=pid;
-			}
-		}
-		
-		final ArrayList<pls> please = new ArrayList<>();
-		
-		final ArrayList<pls> please2 = new ArrayList<>();
-		
-		
-		final Runtime rt = Runtime.getRuntime();
-		new Thread() {
-			public void run() {
-		try{
-		
-		//	/
-		//	  get a list of all javaw.exe processes beforehand, then compare it afterwards
-			 //
-			
-			try {
-			    String line;
-			    Process p = Runtime.getRuntime().exec
-			    	    (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
-			    BufferedReader input =
-			            new BufferedReader(new InputStreamReader(p.getInputStream()));
-			    int linecount = 0;
-			    while ((line = input.readLine()) != null) {
-			    	linecount++;
-			    	if (linecount >= 4) {String[] split = line.split(" ");
-			    	
-			    	
-			    	
-			    	int pid = 0; String pname = "";
-			    	boolean secondlinebtw = false;
-			        for (int i = 0; i < split.length; i++){
-			        	if (secondlinebtw && pname.equals("java.exe") && split[i].equals("") == false){
-				        	secondlinebtw=false;
-				        	System.out.println(line);
-				        	pid = Integer.parseInt(split[i]);
-				        	
-				        	}
-			        	if (i == 0) {
-			        		secondlinebtw=true;
-			        		pname = split[i];
-			        	}
-			        	
-			        	
-			        	
-			        }
-			        
-			        if (pname.equals("java.exe")) {
-			        	please.add(new pls(pname,pid));
-			        }
-			        
-			      
-			    }}
-			    input.close();
-			} catch (Exception err) {
-			    err.printStackTrace();
-			}
-			
-			
-			Process pr = rt.exec(command);
-		
-		
-		for (int i=9;i>=1;i--){
-		Thread.sleep(1000);
-			System.out.println(i);
-		}
-	//
-	//	  pr is the cmd.exe file.
-		 //
-		
-		
-		
-		try {
-		    String line;
-		    Process p = Runtime.getRuntime().exec
-		    	    (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
-		    BufferedReader input =
-		            new BufferedReader(new InputStreamReader(p.getInputStream()));
-		    int linecount = 0;
-		    while ((line = input.readLine()) != null) {
-		    	linecount++;
-		    	if (linecount >= 4) {String[] split = line.split(" ");
-		    	
-		    	
-		    	
-		    	int pid = 0; String pname = "";
-		    	boolean secondlinebtw = false;
-		        for (int i = 0; i < split.length; i++){
-		        	if (secondlinebtw && pname.equals("java.exe") && split[i].equals("") == false){
-			        	secondlinebtw=false;
-			        	System.out.println(line);
-			        	pid = Integer.parseInt(split[i]);
-			        	
-			        	}
-		        	if (i == 0) {
-		        		secondlinebtw=true;
-		        		pname = split[i];
-		        	}
-		        	
-		        	
-		        	
-		        }
-		        
-		        if (pname.equals("java.exe")) {
-		        	please2.add(new pls(pname,pid));
-		        }
-		        
-		      
-		    }}
-		    input.close();
-		} catch (Exception err) {
-		    err.printStackTrace();
-		}
-		
-		
-		//find the different value
-				for (int i2 = 0; i2 < please2.size(); i2++){
-					int pid = please2.get(i2).pid;
-					boolean missing = true;
-					for (int i1=0;i1<please.size();i1++) {
-						if (please.get(i1).pid == pid){
-							missing = false;
-						}
-						
-						
-						
-					}
-					if (missing == true)
-						System.out.println("the new processid is " + pid);
-				}
-				
-				System.out.println("1111111111");
-				for (int i = 0; i < please.size(); i++){
-					System.out.println(please.get(i).pid);
-				}
-				
-				System.out.println("222222222");
-				for (int c = 0; c < please2.size(); c++) {
-					System.out.println(please2.get(c).pid);
-				}
-				
-		
-		
-		}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
-		
-		}}.start();
-		
-		
-		
-		
-		
-		
-		
 		*/
+		{
+		try{
+			
 		
-		
-		
-		
-		
+		Process p = Runtime.getRuntime().exec
+	    	    (System.getenv("windir") +"\\system32\\"+"tasklist.exe");
+	    BufferedReader input =
+	            new BufferedReader(new InputStreamReader(p.getInputStream()));
+	    int linecount = 0;
+	    String line;
+	    while ((line = input.readLine()) != null) {
+	    	
+	    	linecount++;
+	    	if (linecount < 4) continue;
+	    	int memoryusageinkb;
+	    	
+	    	String[] mempls = line.replace(",","").split(" ");
+	    	memoryusageinkb = Integer.parseInt(mempls[mempls.length-2]);
+	    	if (mempls[0].startsWith("java.")) {
+	    		
+	    	
+	    	System.out.println("memory usage is " + memoryusageinkb);
+	    	}
+	    	/*
+	    	Image Name                     PID Session Name        Session#    Mem Usage
+	    	========================= ======== ================ =========== ============
+	    	System Idle Process              0 Services                   0         24 K
+	    	System                           4 Services                   0      1,048 K
+	    	smss.exe                       444 Services                   0         60 K
+	    	csrss.exe                      604 Services                   0      1,540 K
+	    	csrss.exe                      712 Console                    1     21,020 K
+	    	wininit.exe                    720 Services                   0         64 K
+	    	winlogon.exe                   776 Console                    1      2,020 K
+	    	services.exe                   824 Services                   0      6,860 K
+	    	lsass.exe                      832 Services                   0      9,868 K
+	    	lsm.exe                        844 Services                   0      1,980 K
+	    	svchost.exe                    936 Services                   0      5,324 K
+	    	svchost.exe                   1016 Services                   0      6,784 K
+	    	MsMpEng.exe                    616 Services                   0    168,188 K
+	    	svchost.exe                    492 Services                   0     14,900 K
+	    	svchost.exe                    664 Services                   0     10,232 K
+	    	svchost.exe                   1056 Services                   0     17,752 K
+	    	*/
+	    }
+		}catch(Exception e){e.printStackTrace();}
+		}
 		
 		
 		

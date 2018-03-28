@@ -122,6 +122,8 @@ public class KBot extends Script{
 		
 		
 	}
+	
+	String myguysname = null;
 	@Override
 	 public final void onResponseCode(final int responseCode) throws InterruptedException {
 	        if(ResponseCode.isDisabledError(responseCode)) {
@@ -134,6 +136,8 @@ public class KBot extends Script{
 			out2.println(System.currentTimeMillis());
 			out2.println("rip " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
 					new Date(System.currentTimeMillis())));
+			if (myguysname != null)
+				out2.println("here lies " + myguysname);
 			out2.close();
 				
 				
@@ -177,14 +181,43 @@ public class KBot extends Script{
 	    	}
 	    
 	    }
+	 public boolean loginDoubleCheck() {
+			if (getLobbyButton() != null
+					|| !getClient().isLoggedIn())//very important thing
+			{
+				//this means he failed to log in , so log in again.
+				state = STATEMACHINE.loginstate1;
+				return true;
+			}
+			return false;
+		}
 	 private boolean isOnWorldSelectorScreen() {
 	        return getColorPicker().isColorAt(50, 50, Color.BLACK);
 	    }
+	 long timeLastPulse = 0;
+	 
+	 private void printPulse() {
+		 if (System.currentTimeMillis()  - timeLastPulse < 60 * 1_000 * 2)
+			 return;
+		 else
+			 timeLastPulse = System.currentTimeMillis();
+		 
+		 try{
+		 File f = new File(getDirectoryData() + "\\pulse\\" + getParameters() + ".pulse");
+		 PrintWriter out = new PrintWriter(f);
+			out.println(System.currentTimeMillis());
+			out.println("KBot");
+			out.close();
+			
+		 }catch(Exception e){e.printStackTrace();}
+	 }
 	 Entity Karim = null;
 	long lastfiletime = 0;
 	int numtimeslmao = 0;
 	@Override
 	public int onLoop() throws InterruptedException {
+		printPulse();
+		
 		switch(state) {
 		case loginstate1:
 			 if (getClient().isLoggedIn() && getLobbyButton() == null
@@ -236,6 +269,9 @@ public class KBot extends Script{
 			
 			
 		case locationcheck:
+			if (myguysname == null) {
+				myguysname = myPlayer().getName();
+			}
 			log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			int x,y;
 			x = myPlayer().getX(); y = myPlayer().getY();
@@ -327,6 +363,13 @@ if (iLUMBRIDGETODESERT == LUMBRIDGETODESERT.length) {
 			
 			break;
 		case waitfortradecoins:
+			/*
+			 * TODO: sometimes the bot gets logged out in this state.
+			 */
+			
+			if (loginDoubleCheck())
+				break;
+			
 			if (tradeFlag) {
 				//wait for trade variable to be flipped
 				state = STATEMACHINE.completetradecoins;
@@ -500,8 +543,14 @@ Karim = npcs.closest("Karim");
 				click(264,180);
 				//wait for him to accept
 				if (WaitForWidget(334,13)) {
-				//press accept again
-				click(215,303);
+					while (widgets.get(334,13) != null) {
+						//press accept again
+						click(215,303);
+						rsleep(800);
+					}
+					
+				
+				
 				//successful trade!
 				state = STATEMACHINE.kebab1;
 				

@@ -129,8 +129,9 @@ public class LMother {
 				
 				//KHAL TUTORIAL ISLAND takes 8 minutes 40 seconds about
 				final long TIME = 10;
+				
 				if (System.currentTimeMillis() - tutBegin > 
-						TIME * 60 * 1000) {
+						TIME * 70 * 1000) {
 					killTutorialScript();
 					watcherState = WatcherStates.runMotheredBot;
 				}
@@ -147,12 +148,14 @@ public class LMother {
 				 * walk to G E 
 				 * logout after completion
 				 */
+				//make original pidlist
 				final getrunnerboy g1 = new getrunnerboy("java.exe");
 				g1.populatepidlist();
 				System.out.println("g1.pidlistsize is " + g1.pidlist.size());
+				//make object for 2nd pidlist
 				final getrunnerboy g2 = new getrunnerboy("java.exe");
 				
-				
+				//start process
 				final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
 						+ "OSBot " + jarver + ".jar\" "
 						+ "-login gangsthurh:" + getpassword2() + " -bot "
@@ -164,10 +167,33 @@ public class LMother {
 					public void run() {
 				try{
 				Process pr = rt.exec(command);
-				
+				//wait for process to begin
 				if (g2.waitForExtraProcesses(g1, 15000, 2)){
 					ArrayList<Integer> newpidlist = g2.extraProcesses(g1);
-					pidHandlesOnMultipleTutorials = newpidlist;
+					//NEW CODE: wait 15 seconds. if the new process disappears, then it 
+					Thread.sleep(15_000);
+					boolean foundAnEphemeralProcess = false;
+					ArrayList<Integer> newpidlistDoubleChecker = g2.extraProcesses(g1);
+					for (int x = 0; x < newpidlist.size(); x++) {
+						if (!newpidlistDoubleChecker.contains(newpidlist.get(x)))
+						{
+							System.out.println("@Possible ephemeral process: " + newpidlist.get(x));
+							foundAnEphemeralProcess = true;
+						}
+					}
+					//now set it
+					
+					if (foundAnEphemeralProcess) {
+						pidHandlesOnMultipleTutorials = newpidlistDoubleChecker;
+					}
+					else
+					{
+						pidHandlesOnMultipleTutorials = newpidlist;
+					}
+					
+					
+					
+					
 					for (int i = 0; i < pidHandlesOnMultipleTutorials.size(); i++) {
 						System.out.println("Detected process: " + pidHandlesOnMultipleTutorials.get(i));
 					}
@@ -215,10 +241,11 @@ public class LMother {
 					Scanner scan = new Scanner(f);
 					long ms = System.currentTimeMillis() - Long.parseLong(scan.nextLine());
 					scan.close();
-					//file must be created within the past 10 seconds
-					if (ms < 10 * 1000) {
-						
+					//file must be created within the past 30 seconds
+					if (ms < 30 * 1000) {
+						System.out.println("TUTORIAL REQUEST FROM " + number);
 						watcherState = WatcherStates.startTut;
+						f.delete();
 						break;//only do 1 request per object.
 						
 					}
@@ -265,6 +292,7 @@ public class LMother {
 	
 	private void addBot(int number, String type) {
 		
+		
 		try{
 			File f = new File("C:\\Users\\Yoloswag\\OSBot\\data\\" + number + ".banned");
 			if (f.exists())
@@ -275,6 +303,22 @@ public class LMother {
 			}
 			
 			
+			
+		}catch(Exception e){e.printStackTrace();}
+		
+		try{
+			File f = new File("C:\\Users\\Yoloswag\\OSBot\\data\\pulse\\" + number + ".pulse");
+			Scanner scan = new Scanner(f);
+			long timeboy = Long.parseLong(scan.nextLine());
+			if (System.currentTimeMillis() - timeboy < 2 * 1_000 * 60) {
+				System.out.println("@@::" + (System.currentTimeMillis() - timeboy));
+				System.out.println("2Error: bot " + number + " is currently running.");
+				return;
+			}
+			else
+			{
+				f.delete();
+			}
 			
 		}catch(Exception e){e.printStackTrace();}
 		
@@ -485,6 +529,9 @@ public class LMother {
 			    	if (linecount >= 4) {String[] split = line.split(" ");
 			    	
 			    	
+			    	
+			    	String[] mempls = line.replace(",","").split(" ");
+			    	int memoryusageinkb = Integer.parseInt(mempls[mempls.length-2]);
 			    	
 			    	int pid = 0; String pname = "";
 			    	boolean secondlinebtw = false;
