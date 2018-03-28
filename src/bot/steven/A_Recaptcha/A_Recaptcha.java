@@ -7,14 +7,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.List;
 import java.util.Scanner;
 import java.util.logging.Level;
 
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.HtmlButton;
+import com.gargoylesoftware.htmlunit.html.HtmlEmailInput;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
+import com.gargoylesoftware.htmlunit.html.HtmlNumberInput;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-import com.gargoylesoftware.htmlunit.html.HtmlSubmitInput;
+import com.gargoylesoftware.htmlunit.html.HtmlPasswordInput;
+import com.gargoylesoftware.htmlunit.html.HtmlTextArea;
 import com.gargoylesoftware.htmlunit.html.HtmlTextInput;
 
 public class A_Recaptcha {
@@ -76,27 +79,27 @@ public static void main(String[] args) {
 		
 		
 		System.out.println("2 boy");
-		System.out.println("its probably" + p1.getHtmlElementById("create-email-form").getClass().getName());
-		final HtmlForm entireform =  (p1.getHtmlElementById("create-email-form"));//p1.getFormByName("create-email-form");
-		System.out.println("clasname is " + entireform.getClass().getName());
-		//TODO: fill in Email
 		
-		final HtmlTextInput emailformtextfield = entireform.getInputByName("email1");
+		final HtmlForm entireform =  (p1.getHtmlElementById("create-email-form"));//p1.getFormByName("create-email-form");
+		
+		//DONETODO: fill in Email
+	
+		final HtmlEmailInput emailformtextfield = entireform.getInputByName("email1");
 		emailformtextfield.setValueAttribute("retardtestemail420@yamdex.ru");
 		System.out.println("3 boy");
-		//TODO: fill in Password
-		final HtmlTextInput passwordfield = entireform.getInputByName("password1");
+		//DONETODO: fill in Password
+		final HtmlPasswordInput passwordfield = entireform.getInputByName("password1");
 		passwordfield.setValueAttribute(passwordToRunescapeAccount);
 		System.out.println("4 boy");
-		//TODO: fill in Display Name
+		//DONETODO: fill in Display Name
 		final HtmlTextInput displaynamefield = entireform.getInputByName("displayname");
 		displaynamefield.setValueAttribute("henlo wurld");
 		System.out.println("5 boy");
-		//TODO: fill in Age
-		final HtmlTextInput agefield = entireform.getInputByName("age");
+		//DONETODO: fill in Age
+		final HtmlNumberInput agefield = entireform.getInputByName("age");
 		agefield.setValueAttribute("23");
 		System.out.println("6 boy");
-		//TODO: answer captcha
+		//DONETODO: answer captcha
 		//https://2captcha.com/recaptchav2_eng_instruction
 		//https://2captcha.com/newapi-recaptcha-en
 		
@@ -126,18 +129,41 @@ public static void main(String[] args) {
 You will need to enter our answer here
 		   */
 		  
+		  final boolean actuallysolve = true; 
+		String responseToken = null;
+		  if (actuallysolve)
+			responseToken = service.solveCaptcha();
+		  else
+			  responseToken = "lolerrorbtw";
 		  
-		
-			String responseToken = service.solveCaptcha();
 			System.out.println("The response token is: " + responseToken);
 			
-			final HtmlTextInput captchasolveform = entireform.getInputByName("g-recaptcha-response");
-			captchasolveform.setValueAttribute(responseToken);
+			final HtmlTextArea captchasolveform = entireform.getTextAreaByName("g-recaptcha-response");
+			
+			captchasolveform.setText(responseToken);
 		
 		
-		//TODO: click Play Now button
-		final HtmlSubmitInput button = entireform.getInputByName("submit");
-		button.click();
+		if (actuallysolve) {
+			//TODO: click Play Now button
+			final HtmlButton submitboy = entireform.getButtonByName("submit");
+			submitboy.click();
+		}
+		else
+		{
+			
+			
+			
+			/*
+			 * MIGHT WORK:.
+			 * //
+			 */
+			
+			
+			/*//DOESNT WORK:
+			 * System.out.println(entireform.getInputByValue("Play Now").asXml());
+			 * final HtmlSubmitInput button = entireform.getInputByName("create-submit");
+			 */
+		}
 		
 		
 		
