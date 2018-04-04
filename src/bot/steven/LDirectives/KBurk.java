@@ -221,6 +221,17 @@ public class KBurk extends Script{
 	}
 	
 	
+	public boolean pixelClickHereToPlay() {
+		
+		return getColorPicker().isColorAt(250,247,new Color(25,19,11))
+				&&
+				getColorPicker().isColorAt(81,231,new Color(93,87,10));
+		
+		
+		
+		
+	}
+	
 	/*
 	enum MASTER {scanning, coingive, kebabtake};
 	MASTER master;
@@ -233,7 +244,8 @@ public class KBurk extends Script{
 	};*/
 	public boolean loginDoubleCheck() {
 		if (getLobbyButton() != null
-				|| !getClient().isLoggedIn())//very important thing
+				|| !getClient().isLoggedIn()
+				|| pixelClickHereToPlay())//very important thing
 		{
 			//this means he failed to log in , so log in again.
 			kebabtake = KEBABTAKE.login;

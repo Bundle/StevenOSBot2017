@@ -5,8 +5,10 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
 
@@ -44,130 +46,220 @@ public class A_Recaptcha {
 		Scanner scan = new Scanner(new File("C:\\Users\\Yoloswag\\OSBot\\data\\logininfo.btw"));
 		password1 = scan.nextLine();
 		password2 = scan.nextLine();
+		burkname = scan.nextLine();
+		usernameformat = scan.nextLine();
 		}catch(Exception e){e.printStackTrace();}
 	}
-	private String password1, password2;
+	private String password1, password2,burkname, usernameformat;
+	
+	ArrayList<String> coolbotnames;
+	private void getRandomNameList() {
+		coolbotnames = new ArrayList<>();
+		try{
+		Scanner scan = new Scanner(new File("C:\\Users\\Yoloswag\\OSBot\\Data\\coolbotnames.txt"));
+		while (scan.hasNextLine()) {
+			String line = scan.nextLine();
+			String name = line.substring(0, line.indexOf(":"));
+			coolbotnames.add(name);
+		}
+		scan.close();
+		}catch(Exception e){e.printStackTrace();}
+	}
+	
+	
+	private int randomdigit() {
+		return (int)(Math.random()*10);
+	}
+	private String getAName() {
+		
+		String out = null;
+		out = coolbotnames.get((int)(coolbotnames.size()*Math.random()));
+		
+		//append random numbers for the last digits. names are 12 digits long.
+		int beforelength = out.length();
+		for (int x = 0; x < 12-beforelength; x++) {
+			out += randomdigit();
+		}
+		
+		
+		
+		return out;
+	}
+	private static void saveNumberNameToFile(final int number, final String name) {
+		
+		new Thread() {
+			public void run() {
+				try{
+				File f =  new File ("C:\\Users\\Yoloswag\\osbot\\data\\numbertoname\\"
+						   + number + ".toName");
+				PrintWriter w = new PrintWriter(f);
+				w.println(name);
+				w.close();
+				System.out.println("Created file " + f.getAbsolutePath());
+				}catch(Exception e){e.printStackTrace();}
+			}
+		}.start();
+	}
+	
+	public void stevenCreateAccount(int botnumber) {
+		 String passwordToRunescapeAccount =  password1;
+			String apiKey = getStevensApiKey();
+			String googleKey = "6LccFA0TAAAAAHEwUJx_c1TfTBWMTAOIphwTtd1b";
+			String pageUrl = "https://secure.runescape.com/m=account-creation/g=oldscape/create_account";
+			String proxyIp = "183.38.231.131";
+			String proxyPort = "8888";
+			String proxyUser = "username";
+			String proxyPw = "password";
+			java.util.logging.Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.OFF);
+			
+			/**
+			 * With proxy and user authentication
+			 */
+			//TwoCaptchaService service = new TwoCaptchaService(apiKey, googleKey, pageUrl, proxyIp, proxyPort, proxyUser, proxyPw, ProxyType.HTTP);
+			
+			/**
+			 * Without proxy and user authentication
+			 * */
+		try{	
+			//TOOD: set up the page xd
+			final WebClient wc = new WebClient();
+			final HtmlPage p1 = wc.getPage(pageUrl);
+			
+			
+			
+			
+			
+			
+			
+			final HtmlForm entireform =  (p1.getHtmlElementById("create-email-form"));//p1.getFormByName("create-email-form");
+			
+			//DONETODO: fill in Email
+		
+			final HtmlEmailInput emailformtextfield = entireform.getInputByName("email1");
+			emailformtextfield.setValueAttribute(usernameformat + botnumber + "@gmail.com");
+			
+			//DONETODO: fill in Password
+			final HtmlPasswordInput passwordfield = entireform.getInputByName("password1");
+			passwordfield.setValueAttribute(passwordToRunescapeAccount);
+			
+			//DONETODO: fill in Display Name
+			//TODO: check if name is taken
+			final HtmlTextInput displaynamefield = entireform.getInputByName("displayname");
+			String namelol = getAName();
+			displaynamefield.setValueAttribute(namelol);
+			System.out.println("namelol is " + namelol);
+			
+			saveNumberNameToFile(botnumber,namelol);
+			
+			//DONETODO: fill in Age
+			final HtmlNumberInput agefield = entireform.getInputByName("age");
+			agefield.setValueAttribute("23");
+			
+			//DONETODO: answer captcha
+			//https://2captcha.com/recaptchav2_eng_instruction
+			//https://2captcha.com/newapi-recaptcha-en
+			
+		
+			/*
+			 * 5. User sends these forms. At the same time code is sent from the field "g-recaptcha-response"
+	6. Site receives data from the users and sends a request to google to check code's validity from the field "g-recaptcha-response"
+	7. Google checks the validity of the code. If the code is valid the site continues processing user's data
+			 */
+			  TwoCaptchaService service = new TwoCaptchaService(apiKey, googleKey, pageUrl);
+				 
+				
+			  /*
+			   * 
+			   * 1. You fill all the needed fields
+	2. You send us Site_Key from the site + additional data ( optional: URL of the page, where you've encountered the captcha, PROXY that you use)
+	3. We upload captcha to our server and assign a worker to solve it
+	4. When the worker solves his captcha we receive g-recaptcha-response
+	5. We return g-recaptcha-response to you
+	6. You enter our answer into the field g-recaptcha-response and pass the form
+			   */
+			  
+			  
+			  /*
+			   * 2. Find the field for text
+	<textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" style="width: 250px; height: 40px; border: 1px solid #c1c1c1; margin: 10px 25px; padding: 0px; resize: none; "></textarea>
+	You will need to enter our answer here
+			   */
+			  
+			  final boolean actuallysolve = true; 
+			String responseToken = null;
+			  if (actuallysolve)
+				responseToken = service.solveCaptcha();
+			  else
+				  responseToken = "lolerrorbtw";
+			  
+				System.out.println("The response token is: " + responseToken);
+				
+				final HtmlTextArea captchasolveform = entireform.getTextAreaByName("g-recaptcha-response");
+				
+				captchasolveform.setText(responseToken);
+			
+			
+			if (actuallysolve) {
+				//TODO: click Play Now button
+				final HtmlButton submitboy = entireform.getButtonByName("submit");
+				submitboy.click();
+				//TODO: page = submitboy.click(); and check if correct account
+			}
+			else
+			{
+				
+				
+				
+				/*
+				 * MIGHT WORK:.
+				 * //
+				 */
+				
+				
+				/*//DOESNT WORK:
+				 * System.out.println(entireform.getInputByValue("Play Now").asXml());
+				 * final HtmlSubmitInput button = entireform.getInputByName("create-submit");
+				 */
+			}
+			
+			
+			
+		}catch(Exception e){e.printStackTrace();}
+	}
+	
+	public A_Recaptcha() {
+		getpasswords();
+		getRandomNameList();
+	}
+	
+	
+	
 	
 public static void main(String[] args) {
-		A_Recaptcha pwboy = new A_Recaptcha();
-		pwboy.getpasswords();
-	 String passwordToRunescapeAccount =  pwboy.password1;
-		String apiKey = getStevensApiKey();
-		String googleKey = "6LccFA0TAAAAAHEwUJx_c1TfTBWMTAOIphwTtd1b";
-		String pageUrl = "https://secure.runescape.com/m=account-creation/g=oldscape/create_account";
-		String proxyIp = "183.38.231.131";
-		String proxyPort = "8888";
-		String proxyUser = "username";
-		String proxyPw = "password";
-		java.util.logging.Logger.getLogger("com.gargoylesoftware.htmlunit").setLevel(Level.OFF);
-		System.out.println("1 boy");
-		/**
-		 * With proxy and user authentication
-		 */
-		//TwoCaptchaService service = new TwoCaptchaService(apiKey, googleKey, pageUrl, proxyIp, proxyPort, proxyUser, proxyPw, ProxyType.HTTP);
-		
-		/**
-		 * Without proxy and user authentication
-		 * */
-	try{	
-		//TOOD: set up the page xd
-		final WebClient wc = new WebClient();
-		final HtmlPage p1 = wc.getPage(pageUrl);
-		
-		
-		
-		
-		
-		System.out.println("2 boy");
-		
-		final HtmlForm entireform =  (p1.getHtmlElementById("create-email-form"));//p1.getFormByName("create-email-form");
-		
-		//DONETODO: fill in Email
+	A_Recaptcha stevenAccountCreator = new A_Recaptcha();
 	
-		final HtmlEmailInput emailformtextfield = entireform.getInputByName("email1");
-		emailformtextfield.setValueAttribute("retardtestemail420@yamdex.ru");
-		System.out.println("3 boy");
-		//DONETODO: fill in Password
-		final HtmlPasswordInput passwordfield = entireform.getInputByName("password1");
-		passwordfield.setValueAttribute(passwordToRunescapeAccount);
-		System.out.println("4 boy");
-		//DONETODO: fill in Display Name
-		final HtmlTextInput displaynamefield = entireform.getInputByName("displayname");
-		displaynamefield.setValueAttribute("henlo wurld");
-		System.out.println("5 boy");
-		//DONETODO: fill in Age
-		final HtmlNumberInput agefield = entireform.getInputByName("age");
-		agefield.setValueAttribute("23");
-		System.out.println("6 boy");
-		//DONETODO: answer captcha
-		//https://2captcha.com/recaptchav2_eng_instruction
-		//https://2captcha.com/newapi-recaptcha-en
-		
 	
-		/*
-		 * 5. User sends these forms. At the same time code is sent from the field "g-recaptcha-response"
-6. Site receives data from the users and sends a request to google to check code's validity from the field "g-recaptcha-response"
-7. Google checks the validity of the code. If the code is valid the site continues processing user's data
-		 */
-		  TwoCaptchaService service = new TwoCaptchaService(apiKey, googleKey, pageUrl);
-			 
-			
-		  /*
-		   * 
-		   * 1. You fill all the needed fields
-2. You send us Site_Key from the site + additional data ( optional: URL of the page, where you've encountered the captcha, PROXY that you use)
-3. We upload captcha to our server and assign a worker to solve it
-4. When the worker solves his captcha we receive g-recaptcha-response
-5. We return g-recaptcha-response to you
-6. You enter our answer into the field g-recaptcha-response and pass the form
-		   */
-		  
-		  
-		  /*
-		   * 2. Find the field for text
-<textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" style="width: 250px; height: 40px; border: 1px solid #c1c1c1; margin: 10px 25px; padding: 0px; resize: none; "></textarea>
-You will need to enter our answer here
-		   */
-		  
-		  final boolean actuallysolve = true; 
-		String responseToken = null;
-		  if (actuallysolve)
-			responseToken = service.solveCaptcha();
-		  else
-			  responseToken = "lolerrorbtw";
-		  
-			System.out.println("The response token is: " + responseToken);
-			
-			final HtmlTextArea captchasolveform = entireform.getTextAreaByName("g-recaptcha-response");
-			
-			captchasolveform.setText(responseToken);
+	//every 20 minutes, create 4 more accounts LOL
+	final int startingNumber = 256-1;
+	int currentNumber = startingNumber;
+	while(true) {
 		
 		
-		if (actuallysolve) {
-			//TODO: click Play Now button
-			final HtmlButton submitboy = entireform.getButtonByName("submit");
-			submitboy.click();
+		for (int plus = 0; plus < 4; plus++) {
+			currentNumber += 1;
+			System.out.println("currentNumber is " + currentNumber);
+			stevenAccountCreator.stevenCreateAccount(currentNumber);
+			
 		}
-		else
-		{
-			
-			
-			
-			/*
-			 * MIGHT WORK:.
-			 * //
-			 */
-			
-			
-			/*//DOESNT WORK:
-			 * System.out.println(entireform.getInputByValue("Play Now").asXml());
-			 * final HtmlSubmitInput button = entireform.getInputByName("create-submit");
-			 */
-		}
+		try{
+			System.out.println("Sleeping for 20 minutes now");
+			Thread.sleep(60 * 1_000 * 20);	
+				
+			}catch(Exception e) { }
+		
+	}
 		
 		
-		
-	}catch(Exception e){e.printStackTrace();}
 	}
 	
 	
@@ -338,7 +430,7 @@ You will need to enter our answer here
 				Thread.sleep(1000);
 				
 				timeCounter++;
-				System.out.println("Waiting for captcha to be solved");
+				System.out.println("Waiting for captcha to be solved " + timeCounter);
 			} while(hw.getHtml().contains("NOT_READY"));
 			
 			System.out.println("It took "  + timeCounter + " seconds to solve the captcha");

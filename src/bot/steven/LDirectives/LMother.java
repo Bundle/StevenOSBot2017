@@ -8,19 +8,33 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+
+import bot.steven.A_Recaptcha.A_Recaptcha;
+
+import com.sun.jna.FromNativeContext;
+import com.sun.jna.Native;
+import com.sun.jna.Pointer;
+import com.sun.jna.PointerType;
+import com.sun.jna.win32.StdCallLibrary;
+import com.sun.jna.win32.W32APIFunctionMapper;
+import com.sun.jna.win32.W32APITypeMapper;
 
 public class LMother {
 	private String password1,password2,burkemail;
@@ -78,10 +92,27 @@ public class LMother {
 		public String scriptType;
 		public BotWatcher(int number, String scriptType) {
 			this.scriptType = scriptType;this.number = number;watcherState = WatcherStates.runMotheredBot; }
-		
+		private String getPortNumber() {
+			if (number < 10)
+				return "500" + number;
+				else if (number < 100)
+				return "50" + number;
+			else if (number < 1000) 
+				return "5" + number;
+			else if (number < 10000)
+				return ""+number;
+			return null;
+		}
 		private void runMotheredBot() {
+			
+			/*
+			 java -Xmx512m -jar "C:\Users\Yoloswag\Dropbox\RunescapeMoney\Bots\OSBot 2.5.3.jar" -login gangsthurh:Cubes01342117!1 -bot stevenfakeaccountemail280@gmail.com:0134201342:1234 -script KBot:280 -allow norandoms
+			  
+			  
+			 */
 			final String LBotCommand = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
 					+ "OSBot " + jarver + ".jar\" "
+					+ "-debug " + getPortNumber() + " "
 					+ "-login gangsthurh:" + getpassword2() + " -bot "
 					+ "stevenfakeaccountemail" + number + "@gmail.com:"
 					+ getpassword() + ":1234"
@@ -92,53 +123,74 @@ public class LMother {
 				public void run() {
 			try{
 			Process pr = rt.exec(LBotCommand);
+			System.out.println("pid is: " + getpid(pr));
+			BufferedReader input =
+		            new BufferedReader(new InputStreamReader(pr.getInputStream()));
+			String line;
+			 while ((line = input.readLine()) != null) {
+				 
+				 //TODO: do the process reading thing here
+				 System.out.println(line);
+				 if (line.contains("GottaDoTutorial")) {
+					 tutStartFlag = true;
+					 closeprocess(pr);
+				 }
+				 
+			 }
+			System.out.println("[[[exitbtw]]]"); 
 			
 			}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
 			
 			}}.start();
 		}
-		
-		void killTutorialScript() {
-			if (pidHandlesOnMultipleTutorials.size()==0) {System.out.println("cant kill, process size is 0"); return;}
+		private long getpid(Process pr) {
+			try {
+			    Field f = pr.getClass().getDeclaredField("handle");
+			    f.setAccessible(true);				
+			    long handl = f.getLong(pr);
+			    
+			    Kernel32 kernel = Kernel32.INSTANCE;
+			    W32API.HANDLE handle = new W32API.HANDLE();
+			    handle.setPointer(Pointer.createConstant(handl));
+			    long pid = kernel.GetProcessId(handle);
+			    return pid;
+			  } catch (Throwable e) {				
+			  }
+			return -1;
+		}
+		private void closeprocess(Process pr) {
 			
-			for (int n = 0; n < pidHandlesOnMultipleTutorials.size(); n++) {
-			final String killscriptstring = "taskkill /PID " + pidHandlesOnMultipleTutorials.get(n) + " /F";
+			final String killscriptstring = "taskkill /PID " + getpid(pr) + " /T /F";
 			final Runtime rt = Runtime.getRuntime();
 			new Thread() {
 				public void run() {
 			try{
 			Process pr = rt.exec(killscriptstring);
+			
 			System.out.println("successfully ran: " + killscriptstring);
 			}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
 			
 			}}.start();
-			}
 			
 			
 		}
 		
-		ArrayList<Integer> pidHandlesOnMultipleTutorials;
-		long tutBegin;
+	private boolean tutDoneFlag = false;
+	private boolean tutStartFlag = false;
 		public void tic(long delta) {
 			
 			
 			
 			switch (watcherState) {
 			case waitForTut:
-				//TODO: when it is done with tutorial, end the .jar process. this is a major flaw.
 				
-				//KHAL TUTORIAL ISLAND takes 8 minutes 40 seconds about
-				final long TIME = 10;
-				
-				if (System.currentTimeMillis() - tutBegin > 
-						TIME * 70 * 1000) {
-					killTutorialScript();
+				if (tutDoneFlag) {
 					watcherState = WatcherStates.runMotheredBot;
+					tutDoneFlag = false;
 				}
 				
 				break;
 			case startTut:
-				pidHandlesOnMultipleTutorials = new ArrayList<>();
 				String nameParam = "591";//because SDN
 				String optionsParam = "0;1;0;0;1";
 				/*khal options:
@@ -148,12 +200,7 @@ public class LMother {
 				 * walk to G E 
 				 * logout after completion
 				 */
-				//make original pidlist
-				final getrunnerboy g1 = new getrunnerboy("java.exe");
-				g1.populatepidlist();
-				System.out.println("g1.pidlistsize is " + g1.pidlist.size());
-				//make object for 2nd pidlist
-				final getrunnerboy g2 = new getrunnerboy("java.exe");
+				
 				
 				//start process
 				final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
@@ -167,58 +214,26 @@ public class LMother {
 					public void run() {
 				try{
 				Process pr = rt.exec(command);
-				//wait for process to begin
-				if (g2.waitForExtraProcesses(g1, 15000, 2)){
-					ArrayList<Integer> newpidlist = g2.extraProcesses(g1);
-					//NEW CODE: wait 15 seconds. if the new process disappears, then it 
-					Thread.sleep(15_000);
-					boolean foundAnEphemeralProcess = false;
-					ArrayList<Integer> newpidlistDoubleChecker = g2.extraProcesses(g1);
-					for (int x = 0; x < newpidlist.size(); x++) {
-						if (!newpidlistDoubleChecker.contains(newpidlist.get(x)))
-						{
-							System.out.println("@Possible ephemeral process: " + newpidlist.get(x));
-							foundAnEphemeralProcess = true;
-						}
-					}
-					//now set it
-					
-					if (foundAnEphemeralProcess) {
-						pidHandlesOnMultipleTutorials = newpidlistDoubleChecker;
-					}
-					else
-					{
-						pidHandlesOnMultipleTutorials = newpidlist;
-					}
-					
-					
-					
-					
-					for (int i = 0; i < pidHandlesOnMultipleTutorials.size(); i++) {
-						System.out.println("Detected process: " + pidHandlesOnMultipleTutorials.get(i));
-					}
-					/*if (newpidlist.size() > 1) {
-						System.out.println("@@@: More than 1 new instance found? dumping list@@@");
-						for (int i = 0; i < newpidlist.size(); i++) {
-							System.out.println(newpidlist.get(i));
-						}
-						pidHandleOnTutorial = newpidlist.get(newpidlist.size()-1);
-					}
-					else if (newpidlist.size() == 1) {
-						System.out.println("found the handle: " + newpidlist.get(0));
-						pidHandleOnTutorial = newpidlist.get(0);
-					}*/
-					
-					
-					
-					
-				}
 				
+				BufferedReader input =
+			            new BufferedReader(new InputStreamReader(pr.getInputStream()));
+				String line;
+				 while ((line = input.readLine()) != null) {
+					 
+					 //TODO: do the process reading thing here
+					 System.out.println(line);
+					 if (line.contains("exited with")) {
+						 tutDoneFlag = true;
+						 closeprocess(pr);
+					 }
+				 }
+				System.out.println("2[[[exitbtw]]]"); 
+				//wait for process to begin
 				}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
 				
 				}}.start();
 				
-				tutBegin = System.currentTimeMillis();
+				
 				
 				watcherState = WatcherStates.waitForTut;
 				break;
@@ -227,41 +242,10 @@ public class LMother {
 				watcherState = WatcherStates.scanForTutReq;
 				break;
 			case scanForTutReq:
-				rsleep(2000);
-				File folder = new File("C:\\Users\\Yoloswag\\OSBot\\data");	
-				File[] listOfFiles = folder.listFiles();
-				
-				
-				
-				for (File f : listOfFiles) {
-					
-					String name = f.getName();
-					if (name.startsWith(""+number) && name.endsWith(".tutorialRequest")) {
-						try{
-					Scanner scan = new Scanner(f);
-					long ms = System.currentTimeMillis() - Long.parseLong(scan.nextLine());
-					scan.close();
-					//file must be created within the past 30 seconds
-					if (ms < 30 * 1000) {
-						System.out.println("TUTORIAL REQUEST FROM " + number);
-						watcherState = WatcherStates.startTut;
-						f.delete();
-						break;//only do 1 request per object.
-						
-					}
-					else
-					{
-						//outdated file, delete the file request
-						f.delete();
-						break;//break cos iterator and concurrency and stuff
-						
-						
-					}
-						}catch(Exception e){e.printStackTrace();}
-					
-					}
+				if (tutStartFlag) {
+				watcherState = WatcherStates.startTut;
+				tutStartFlag = false;
 				}
-				
 				break;
 			case scanForDone:
 				break;
@@ -304,12 +288,13 @@ public class LMother {
 			
 			
 			
-		}catch(Exception e){e.printStackTrace();}
+		}catch(Exception e){System.out.println("couldnt find banfile info for " + number);}
 		
 		try{
 			File f = new File("C:\\Users\\Yoloswag\\OSBot\\data\\pulse\\" + number + ".pulse");
 			Scanner scan = new Scanner(f);
 			long timeboy = Long.parseLong(scan.nextLine());
+			scan.close();
 			if (System.currentTimeMillis() - timeboy < 2 * 1_000 * 60) {
 				System.out.println("@@::" + (System.currentTimeMillis() - timeboy));
 				System.out.println("2Error: bot " + number + " is currently running.");
@@ -320,7 +305,8 @@ public class LMother {
 				f.delete();
 			}
 			
-		}catch(Exception e){e.printStackTrace();}
+			
+		}catch(Exception e){System.out.println("couldnt find pulse for " + number);}
 		
 		
 		System.out.println("starting " + type + " on " + number);
@@ -345,6 +331,9 @@ public class LMother {
 		
 	}
 	final JTextArea jta = new JTextArea();
+	
+	JScrollPane jscrollpane;
+	
 	final String[] botChoices = {"KBot", "LBot"};
 	static final String getBurk(String name) {
 		switch (name) {
@@ -360,7 +349,7 @@ public class LMother {
 	public void begin() {
 		getpasswords();
 		
-		
+		final A_Recaptcha stevenAccountCreator = new A_Recaptcha();
 		f = new JFrame("LMother.java");
 		f.setSize(800,600);
 		f.setLayout(new FlowLayout());
@@ -369,11 +358,32 @@ public class LMother {
 		botChoiceBox.setPreferredSize(new Dimension(100,100));
 		final JTextField boynumber = new JTextField();
 		final JTextField boynumber2 = new JTextField();
+		final JTextField recaptchaBotField = new JTextField();
 		boynumber.setPreferredSize(new Dimension(100,100));
 		boynumber2.setPreferredSize(new Dimension(100,100));
+		recaptchaBotField.setPreferredSize(new Dimension(100,100));
+		recaptchaBotField.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				final String t = recaptchaBotField.getText();
+				recaptchaBotField.setText("");
+				jta.append("Captcha creating bots " + t + " through " + (Integer.parseInt(t)+3) + "\r\n");
+				
+				new Thread() {
+					public void run() {
+						int pint = Integer.parseInt(t);
+				for (int x = pint ; x < pint + 4; x++){
+					jta.append("captcha-creating bot " + t + "\r\n");
+					stevenAccountCreator.stevenCreateAccount(x);
+				}
+					}
+				}.start();
+				
+			}
+			
+		});
 		
-		jta.setPreferredSize(new Dimension(400,400));
-		
+		jscrollpane = new JScrollPane(jta);
+		jscrollpane.setPreferredSize(new Dimension(400,400));
 		final JButton burkbutton = new JButton("burk");
 		burkbutton.setPreferredSize(new Dimension(60,40));
 		burkbutton.addActionListener(new ActionListener() {
@@ -420,7 +430,8 @@ public class LMother {
 		f.add(b);
 		f.add(boynumber);
 		f.add(boynumber2);
-		f.add(jta);
+		f.add(jscrollpane);//TODO: scrollpane
+		f.add(recaptchaBotField);
 		
 		
 		
@@ -487,6 +498,9 @@ public class LMother {
 		
 	}
 	public static void main(String[]args) {
+		
+		   
+		  
 		LMother m = new LMother();
 		m.begin();
 		
@@ -620,8 +634,94 @@ public class LMother {
 	
 	
 	
-	
-	
+	/* Copyright (c) 2007 Timothy Wall, All Rights Reserved
+	 * 
+	 * This library is free software; you can redistribute it and/or
+	 * modify it under the terms of the GNU Lesser General Public
+	 * License as published by the Free Software Foundation; either
+	 * version 2.1 of the License, or (at your option) any later version.
+	 * 
+	 * This library is distributed in the hope that it will be useful,
+	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	 * Lesser General Public License for more details.  
+	 */
+
+
+	/** Base type for most W32 API libraries.  Provides standard options
+	 * for unicode/ASCII mappings.  Set the system property w32.ascii
+	 * to true to default to the ASCII mappings.
+	 */
+	interface W32API extends StdCallLibrary, W32Errors {
+	    
+	    /** Standard options to use the unicode version of a w32 API. */
+	    Map UNICODE_OPTIONS = new HashMap() {
+	        {
+	            put(OPTION_TYPE_MAPPER, W32APITypeMapper.UNICODE);
+	            put(OPTION_FUNCTION_MAPPER, W32APIFunctionMapper.UNICODE);
+	        }
+	    };
+	    
+	    /** Standard options to use the ASCII/MBCS version of a w32 API. */
+	    Map ASCII_OPTIONS = new HashMap() {
+	        {
+	            put(OPTION_TYPE_MAPPER, W32APITypeMapper.ASCII);
+	            put(OPTION_FUNCTION_MAPPER, W32APIFunctionMapper.ASCII);
+	        }
+	    };
+
+	    Map DEFAULT_OPTIONS = Boolean.getBoolean("w32.ascii") ? ASCII_OPTIONS : UNICODE_OPTIONS;
+	    
+	    public class HANDLE extends PointerType {
+	    	@Override
+	        public Object fromNative(Object nativeValue, FromNativeContext context) {
+	            Object o = super.fromNative(nativeValue, context);
+	            if (INVALID_HANDLE_VALUE.equals(o))
+	                return INVALID_HANDLE_VALUE;
+	            return o;
+	        }
+	    }
+
+	    /** Constant value representing an invalid HANDLE. */
+	    HANDLE INVALID_HANDLE_VALUE = new HANDLE() { 
+	        { super.setPointer(Pointer.createConstant(-1)); }
+	        @Override
+	        public void setPointer(Pointer p) { 
+	            throw new UnsupportedOperationException("Immutable reference");
+	        }
+	    };
+	}
+	/* Copyright (c) 2007 Timothy Wall, All Rights Reserved
+	 *
+	 * This library is free software; you can redistribute it and/or
+	 * modify it under the terms of the GNU Lesser General Public
+	 * License as published by the Free Software Foundation; either
+	 * version 2.1 of the License, or (at your option) any later version.
+	 * 
+
+	 * This library is distributed in the hope that it will be useful,
+	 * but WITHOUT ANY WARRANTY; without even the implied warranty of
+	 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	 * Lesser General Public License for more details.  
+	 */
+
+	interface W32Errors {
+		
+	    int NO_ERROR               = 0;
+	    int ERROR_INVALID_FUNCTION = 1;
+	    int ERROR_FILE_NOT_FOUND   = 2;
+	    int ERROR_PATH_NOT_FOUND   = 3;
+
+	}
+
+	/* https://jna.dev.java.net/ */
+	public interface Kernel32 extends W32API {
+	    Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32", Kernel32.class, DEFAULT_OPTIONS);
+	    /* http://msdn.microsoft.com/en-us/library/ms683179(VS.85).aspx */
+	    HANDLE GetCurrentProcess();
+	    /* http://msdn.microsoft.com/en-us/library/ms683215.aspx */
+	    int GetProcessId(HANDLE Process);
+	}
 	
 	
 	

@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.io.File;
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
@@ -72,6 +73,11 @@ public class KBot extends Script{
 		
 		return new Position(x,y,z);
 	}
+	public static String errorString(Exception errorboyyyy) {
+		StringWriter errors = new StringWriter();
+		errorboyyyy.printStackTrace(new PrintWriter(errors));
+		return errors.toString();
+	}
 	public void onPaint(Graphics2D g) {
 		
 		
@@ -125,8 +131,17 @@ public class KBot extends Script{
 	
 	String myguysname = null;
 	@Override
-	 public final void onResponseCode(final int responseCode) throws InterruptedException {
-	        if(ResponseCode.isDisabledError(responseCode)) {
+	 public final void onResponseCode(final int responseCode) throws InterruptedException { 
+		if (myguysname == null) {
+			//try to get his name from our files
+			try{
+			Scanner scan = new Scanner(new File(getDirectoryData() + "\\numbertoname\\"
+					+ getParameters() + ".toName"));
+			myguysname = scan.nextLine();
+			scan.close();
+			}catch(Exception e){e.printStackTrace();}
+		}
+		if(ResponseCode.isDisabledError(responseCode)) {
 	            log("Login failed, account is disabled");
 	          //create banned file
 				try{
@@ -136,8 +151,12 @@ public class KBot extends Script{
 			out2.println(System.currentTimeMillis());
 			out2.println("rip " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
 					new Date(System.currentTimeMillis())));
+			
+			
+			
 			if (myguysname != null)
 				out2.println("here lies " + myguysname);
+			else
 			out2.close();
 				
 				
@@ -181,6 +200,9 @@ public class KBot extends Script{
 	    	}
 	    
 	    }
+	 private void printSocketMessage(String message) {
+		 System.out.println(message);
+	 }
 	 public boolean loginDoubleCheck() {
 			if (getLobbyButton() != null
 					|| !getClient().isLoggedIn())//very important thing
@@ -222,7 +244,7 @@ public class KBot extends Script{
 		case loginstate1:
 			 if (getClient().isLoggedIn() && getLobbyButton() == null
 			  && widgets.get(548,69) != null) {
-				
+				 numtimeslmao = 0;
 		            state = STATEMACHINE.locationcheck;
 		            break;
 		        } else if (getLobbyButton() != null && getLobbyButton().isVisible()) {
@@ -271,6 +293,20 @@ public class KBot extends Script{
 		case locationcheck:
 			if (myguysname == null) {
 				myguysname = myPlayer().getName();
+				try{
+					//check if numbertoname file exists
+					File f = new File(getDirectoryData() + "\\numbertoname\\"
+							+ getParameters() + ".toName");
+					
+					if (!f.exists()) {
+						PrintWriter p = new PrintWriter(f);
+						p.println(myPlayer().getName());
+						p.close();
+					}
+					//if not then make it 
+					
+				}catch(Exception e){
+				log(errorString(e));};
 			}
 			log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			int x,y;
@@ -292,17 +328,9 @@ public class KBot extends Script{
 		
 		
 		case requesttutorial:
-			try{
-				File f = new File(getDirectoryData() + "\\" + getParameters() + ".tutorialRequest");
-				log("creating file " + getDirectoryData() + "\\" + getParameters() + ".tutorialRequest");
-			PrintWriter out = new PrintWriter(f);
-			out.println(System.currentTimeMillis());
-			out.println("KBot");
-			out.close();
-			System.exit(0);
-			}catch(Exception e){log("file error :3c");System.exit(-1);}
-			System.exit(-1);
 			
+				printSocketMessage("GottaDoTutorial");
+				
 			break;
 		case traveltodesertfromspawn1:
 		{
