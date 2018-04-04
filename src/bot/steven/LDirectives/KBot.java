@@ -308,7 +308,7 @@ public class KBot extends Script{
 				}catch(Exception e){
 				log(errorString(e));};
 			}
-			log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+			printSocketMessage(getParameters() + "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
 			int x,y;
 			x = myPlayer().getX(); y = myPlayer().getY();
 			if (y > 9000 || (x < 3220 && y < 3208)) {
@@ -330,6 +330,8 @@ public class KBot extends Script{
 		case requesttutorial:
 			
 				printSocketMessage("GottaDoTutorial");
+				Thread.sleep(10000);
+				
 				
 			break;
 		case traveltodesertfromspawn1:

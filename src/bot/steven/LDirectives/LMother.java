@@ -87,6 +87,14 @@ public class LMother {
 	enum WatcherStates {waitForTut, startTut, runMotheredBot, scanForTutReq, scanForDone};
 	class BotWatcher {
 		
+		/*4/4/2018
+		 * get the thread's pulse.
+		 * TODO:
+		 * PROPOSAL: if there is no pulse for 15 seconds after initial launch, then assume it is dead and relaunch
+		 * "Successfully loaded OSBot!"
+		 * TODO: abstracticize to currentScriptName so it can relaunch properly
+		 */
+		
 		WatcherStates watcherState;
 		public int number;
 		public String scriptType;
@@ -103,6 +111,51 @@ public class LMother {
 				return ""+number;
 			return null;
 		}
+		Process botProcess = null;
+		private void closeBotProcess() {
+			if (botProcess == null) {
+				System.out.println("no process to close.");
+			}
+			else
+			{
+				closeprocess(botProcess);
+			}
+		}
+		private void startCurrentScriptAgain() {
+			//note: you have to close the process before running this
+			final String botcommandstring = currentScriptString;
+			final Runtime rt = Runtime.getRuntime();
+			new Thread() {
+				public void run() {
+			try{
+			Process pr = rt.exec(botcommandstring);
+			botProcess = pr;
+			scanForPotentialCrashedProcess = true;
+			scanForPotentialCrashedProcessTimer = 0L;
+			System.out.println("pid is: " + getpid(pr));
+			BufferedReader input =
+		            new BufferedReader(new InputStreamReader(pr.getInputStream()));
+			String line;
+			 while ((line = input.readLine()) != null) {
+				 
+				 //DONETODO: do the process reading thing here
+				 System.out.println(line);
+				 if (line.contains("GottaDoTutorial")) {
+					 tutStartFlag = true;
+					 closeprocess(pr);
+				 }
+				 if (line.contains("Successfully loaded OSBot!")) {
+					 successfulStartFlag = true;
+				 }
+				 
+			 }
+			System.out.println("[[[exitbtw]]]"); 
+			
+			}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
+			
+			}}.start();
+		}
+		private String currentScriptString = null;
 		private void runMotheredBot() {
 			
 			/*
@@ -118,22 +171,29 @@ public class LMother {
 					+ getpassword() + ":1234"
 					+ " -script " + getStringNameForBotType(scriptType) + ":" + number
 					+ " -allow norandoms";
+			currentScriptString = LBotCommand;
 			final Runtime rt = Runtime.getRuntime();
 			new Thread() {
 				public void run() {
 			try{
 			Process pr = rt.exec(LBotCommand);
+			botProcess = pr;
+			scanForPotentialCrashedProcess = true;
+			scanForPotentialCrashedProcessTimer = 0L;
 			System.out.println("pid is: " + getpid(pr));
 			BufferedReader input =
 		            new BufferedReader(new InputStreamReader(pr.getInputStream()));
 			String line;
 			 while ((line = input.readLine()) != null) {
 				 
-				 //TODO: do the process reading thing here
+				 //DONETODO: do the process reading thing here
 				 System.out.println(line);
 				 if (line.contains("GottaDoTutorial")) {
 					 tutStartFlag = true;
 					 closeprocess(pr);
+				 }
+				 if (line.contains("Successfully loaded OSBot!")) {
+					 successfulStartFlag = true;
 				 }
 				 
 			 }
@@ -156,6 +216,7 @@ public class LMother {
 			    return pid;
 			  } catch (Throwable e) {				
 			  }
+			System.out.println("sWARNING!!! unable to find process PID!!");
 			return -1;
 		}
 		private void closeprocess(Process pr) {
@@ -165,7 +226,7 @@ public class LMother {
 			new Thread() {
 				public void run() {
 			try{
-			Process pr = rt.exec(killscriptstring);
+			rt.exec(killscriptstring);
 			
 			System.out.println("successfully ran: " + killscriptstring);
 			}catch(Exception forfucksakes){forfucksakes.printStackTrace();}
@@ -177,8 +238,27 @@ public class LMother {
 		
 	private boolean tutDoneFlag = false;
 	private boolean tutStartFlag = false;
+	private boolean scanForPotentialCrashedProcess = false;
+	private long scanForPotentialCrashedProcessTimer;
+	private boolean successfulStartFlag = false;
 		public void tic(long delta) {
 			
+			if (scanForPotentialCrashedProcess) {
+				System.out.println("timer is " + scanForPotentialCrashedProcessTimer);
+				if (successfulStartFlag) {
+					successfulStartFlag = false;
+					scanForPotentialCrashedProcess = false;
+				}
+				else
+				{
+				scanForPotentialCrashedProcessTimer += delta;
+				if (scanForPotentialCrashedProcessTimer > 30_000) {
+					System.out.println("Faulty launch detected: " + number);
+					closeBotProcess();
+					startCurrentScriptAgain();
+				}
+				}
+			}
 			
 			
 			switch (watcherState) {
@@ -205,22 +285,26 @@ public class LMother {
 				//start process
 				final String command = "java -Xmx512m -jar \"C:\\Users\\Yoloswag\\Dropbox\\RunescapeMoney\\Bots\\"
 						+ "OSBot " + jarver + ".jar\" "
+						+ "-debug " + getPortNumber() + " "
 						+ "-login gangsthurh:" + getpassword2() + " -bot "
 						+ "stevenfakeaccountemail" + number + "@gmail.com:"
 						+ getpassword() + ":1234"
 						+ " -script " + nameParam + ":" + optionsParam;
+				currentScriptString = command;
 				final Runtime rt = Runtime.getRuntime();
 				new Thread() {
 					public void run() {
 				try{
 				Process pr = rt.exec(command);
-				
+				botProcess = pr;
+				scanForPotentialCrashedProcess = true;
+				scanForPotentialCrashedProcessTimer = 0L;
 				BufferedReader input =
 			            new BufferedReader(new InputStreamReader(pr.getInputStream()));
 				String line;
 				 while ((line = input.readLine()) != null) {
 					 
-					 //TODO: do the process reading thing here
+					 //DONETODO: do the process reading thing here
 					 System.out.println(line);
 					 if (line.contains("exited with")) {
 						 tutDoneFlag = true;
@@ -315,11 +399,12 @@ public class LMother {
 		
 		/////////////
 		
-		//TODO: end the process?
+		//DONETODO: end the process?
 		for (int i =0 ; i < botWatchers.size(); i++)
 		{
 			if (botWatchers.get(i).number == number)
 			{
+				botWatchers.get(i).closeBotProcess();
 				botWatchers.remove(i);
 				break;
 			}
@@ -430,7 +515,7 @@ public class LMother {
 		f.add(b);
 		f.add(boynumber);
 		f.add(boynumber2);
-		f.add(jscrollpane);//TODO: scrollpane
+		f.add(jscrollpane);//DONETODO: scrollpane
 		f.add(recaptchaBotField);
 		
 		
